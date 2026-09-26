@@ -20,10 +20,21 @@ import numpy as np
 import torch
 
 from .canary_audit import run_sequence, scores as analytic_scores
-from .canary_learned import mixture_llr
 from .data import digest, load_mnist
 from .metrics import auc
 from .models import initialize
+
+
+def mixture_llr(round_llr, probability):
+    """Log likelihood ratio for Bernoulli canary inclusion per round."""
+    values = np.asarray(round_llr, dtype=np.float64)
+    if not 0 < probability <= 1:
+        raise ValueError("Inclusion probability must be in (0, 1]")
+    if probability == 1:
+        return float(values.sum())
+    return float(np.logaddexp(
+        np.log1p(-probability), np.log(probability) + values
+    ).sum())
 
 
 def write_csv(path, rows):
