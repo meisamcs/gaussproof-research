@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - gaussproof_student_repository.zip
+      - .github/workflows/unpack.yml
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -22,6 +24,7 @@ jobs:
           fi
           unzip -q gaussproof_student_repository.zip -d unpacked
           cp -a unpacked/gaussproof/. .
+          rm -f .github/workflows/tests.yml
           rm -rf unpacked gaussproof_student_repository.zip
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
