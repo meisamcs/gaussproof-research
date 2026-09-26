@@ -1,0 +1,13 @@
+{
+  "seed": 20260923,
+  "lstm_steps": 1000,
+  "lstm_learning_rate": 0.001,
+  "diffusion_steps": 1600,
+  "diffusion_learning_rate": 0.0005,
+  "diffusion_train_timesteps": 100,
+  "diffusion_sampling_steps": 30,
+  "posterior_draws": 8,
+  "training_batch_size": 64,
+  "validation_interval": 200,
+  "hidden_size": 64
+}

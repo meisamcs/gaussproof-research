@@ -1,0 +1,1 @@
+{"seeds": [101, 202, 303], "training_steps": 1200, "train_batch": 32, "shuffle_repeats": 5}

@@ -1,0 +1,18 @@
+{
+  "README.md": "032fb739058d84af95aeb78e3e6a5aa1352385196e93a57d61fdc5aad7f87adc",
+  "completion.json": "5ac458e87ef78e0207ea80ead73055d75e98832a78b00c85bf34385cda9509b8",
+  "conditioning_and_noise_loss.pdf": "95c4fd9c4c325aa7bedf1f8d1c740437dbe67f2215239b8c7e85f2f3993beb6c",
+  "conditioning_and_noise_loss.png": "0c5c35ceef168624cfe578ca0a3c1a052b24b5a1c0c571a95c465d738a86b5ce",
+  "config.json": "068918f4ecc9bf6d06cb7c50e9f811df02ee2281bbe190200b610c65a6f5d52c",
+  "denoising_B1.pdf": "738eacf9a9c5b60bcbca257f1f1472b65ebfd16284cbc3986633f19147f5fb95",
+  "denoising_B1.png": "7a5fd1fc214a979e74ef2fa70cbbc417fc6c825d291599e6ac0ec064b31df49f",
+  "denoising_B8.pdf": "eb81900e2497ce70cb2b87a51ee89c1c713d59d4d13eccb0ce555e3bc5fb895e",
+  "denoising_B8.png": "f11ae7cb9891d9bc8cbbadd42e3a6a8336d90d3ebaaf39e54880f7ba074039bd",
+  "findings.md": "a1121a1d477f4e4692014b5092cb9bfb998d38d1d209db3a0739c2e7e8c42bdb",
+  "noise_prediction.csv": "04432ab5df8f437a51aa3bf2bae91077e359fe7d27f845b78eda5b9ba29dc3f1",
+  "paired_vs_gaussian.csv": "baa6b598b75f3181a0c2474c1603690d1536c874338ad0f7bd4a1adee1e41fbe",
+  "provenance.json": "b8997cb8e6f74b8ef0bd3f60bce795706746caea0b158ea6748b78500dbbacce",
+  "spaces.csv": "ed82132fc0e67c68470454ab64e3d126320eb60489cb765fb759bbdb684f2c84",
+  "summary.csv": "14bf31985e9638363c1552caa5139a7ee13150a8fab345d3bd68ff464de1970f",
+  "training.csv": "c10a95a81dd0b828b92ac380e4d755e441248fa5f72a49136bcc415b6265243d"
+}

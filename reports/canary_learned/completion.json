@@ -1,0 +1,24 @@
+{
+  "seconds": 301.7960889339447,
+  "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "source_completion_sha256": "0a978672c32ac59fb77fc7c5cfa95666b0c0318a08a2ee3b8135744b8b4ab626",
+  "implementation_sha256": "9ecf6e5aeb238b851101bb86aae1dfa15190f43934f9c5e2b03c2d9a41878c3d",
+  "cross_fitting": "four calibration canaries; leave one identity out per fold",
+  "holdout_canaries": [
+    4207,
+    11243,
+    37991,
+    44690
+  ],
+  "trajectories": 576,
+  "feature_names": [
+    "round_llr",
+    "matched_z",
+    "fingerprint_snr",
+    "observation_rms",
+    "cosine",
+    "round_fraction",
+    "log_sigma"
+  ],
+  "torch": "2.5.1"
+}

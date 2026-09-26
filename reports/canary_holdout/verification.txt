@@ -1,0 +1,25 @@
+Unseen-canary holdout verification
+
+Data: /path/to/mnist_train.csv
+Run: runs/canary_holdout
+Sequences: 576 total (288 calibration, 288 holdout)
+Canaries: 4 calibration identities, 4 disjoint holdout identities
+Noise levels: sigma=0.25, 1.0, 4.0
+
+Commands:
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MPLCONFIGDIR=.cache/matplotlib \
+    .venv-diffusion/bin/python -u -m gaussproof.canary_holdout \
+    --data /path/to/mnist_train.csv \
+    --config configs/canary_holdout.json --output runs/canary_holdout
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MPLCONFIGDIR=.cache/matplotlib \
+    .venv-diffusion/bin/python -m gaussproof.cli smoke
+
+Results:
+  Full smoke suite: 40 tests passed.
+  Holdout sequence AUC: 0.928819, 0.884115, 0.608507.
+  Holdout final-release AUC: 0.643663, 0.559462, 0.519965.
+  Sequence TPR at calibrated 5%: 0.5625, 0.3750, 0.1667.
+
+The holdout values have 48 positive and 48 negative trajectories per sigma;
+low-FPR estimates therefore have coarse resolution. Accounting is conservative
+replace-one zCDP without sampling amplification.

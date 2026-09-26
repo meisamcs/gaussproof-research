@@ -1,0 +1,4 @@
+seed,normalization_scale,gradient_dimension,pca_coordinates_per_checkpoint,public_examples,heldout_examples
+17,0.07053658366203308,13242,64,1000,30
+29,0.07213064283132553,13242,64,1000,30
+43,0.0711924359202385,13242,64,1000,30

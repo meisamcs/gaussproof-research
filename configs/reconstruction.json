@@ -1,0 +1,10 @@
+{
+  "seeds": [17, 29, 43], "model_train_size": 2000, "prior_size": 1000,
+  "calibration_size": 200, "target_size": 30, "distractor_size": 100,
+  "checkpoint_steps": [100, 300], "public_batch_size": 64, "public_lr": 0.05,
+  "clip": 1.0, "sigmas": [0.25, 1.0, 4.0], "repeats": [1, 16, 64],
+  "batch_size": 8, "rank": 32, "denoiser_steps": 1200,
+  "inversion_sigma": 1.0, "inversion_repeats": 64, "inversion_targets": 3,
+  "inversion_steps": 200, "inversion_restarts": 2,
+  "bootstrap": 500, "delta": 0.00001, "threads": 2
+}

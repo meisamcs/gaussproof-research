@@ -1,0 +1,9 @@
+{
+  "seeds": [17, 29, 43], "train_size": 5000, "eval_size": 2000,
+  "calibration_size": 2000, "shadow_pool_size": 20000, "population_size": 4000,
+  "steps": 800, "batch_sizes": [32, 64], "sigmas": [0.0, 0.5, 1.0, 2.0, 4.0], "clips": [0.5, 1.0, 2.0],
+  "lr": 0.3, "references": 4, "projection_dim": 128, "sparse_penalty": 0.02,
+  "sparse_iterations": 120, "rmia_a": 0.5, "rmia_gamma": 1.0,
+  "bootstrap": 1000, "permutation_repeats": 500, "control_repeats": 50,
+  "delta": 0.00001, "threads": 4
+}

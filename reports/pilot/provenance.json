@@ -1,0 +1,13 @@
+{
+  "version": "0.1.0",
+  "python": "3.12.4",
+  "torch": "2.5.1",
+  "numpy": "1.26.4",
+  "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "dataset_rows": 60000,
+  "device": "cpu",
+  "trajectory": "actual noisy SGD updates",
+  "adjacency": "replace-one",
+  "accountant": "conservative zCDP; no amplification",
+  "started_utc": "2026-09-16T19:31:19Z"
+}

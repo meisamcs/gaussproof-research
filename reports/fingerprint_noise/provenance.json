@@ -1,0 +1,30 @@
+{
+  "source_hashes": {
+    "seed17/ground_truth.npz": "3c3c51bc2f87d7395f87115bc5eba76c0fd5e34183931b245b9381166e119f74",
+    "seed29/ground_truth.npz": "911cae78898788e46f97b3fa6074e38875b251bfc975c56cc83a260ecc8d87f0",
+    "seed43/ground_truth.npz": "b43a438d3905be23dc10238fec4a5bbd00f65f93dd3d154b1e7468bb63a48da1"
+  },
+  "seed_offset": 700,
+  "script_sha256": "4ad0304db1afe255414ebeded9fb3e30cf420c0d097b79ed1faa3e0f016c60c2",
+  "theory_sha256": "94afe1fb0e5594737f20bd9c38abd2945aad171a1f3edccdc75d07a6ab9113fc",
+  "sigmas": [
+    0.5,
+    1.0,
+    2.0,
+    4.0,
+    8.0,
+    16.0,
+    32.0,
+    64.0,
+    128.0
+  ],
+  "repeats_per_checkpoint": 16,
+  "checkpoints": 2,
+  "dimension": 26484,
+  "trials": 20000,
+  "observation": "Exact projected Gaussian statistics of fixed public-checkpoint templates; no private training",
+  "hypotheses": "H0: zero target contribution, H1: known template present in every release; background known/subtracted",
+  "prior": "equal probability absence/presence",
+  "delta": 1e-05,
+  "epsilon": "Conservative replace-one full-vector bound using sensitivity 2C, not exact epsilon"
+}

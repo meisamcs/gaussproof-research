@@ -1,0 +1,22 @@
+{
+  "seed": 20260919,
+  "clip": 0.1,
+  "batch_size": 32,
+  "population": 2000,
+  "steps": 64,
+  "sigmas": [
+    1.0,
+    4.0,
+    16.0
+  ],
+  "delta": 1e-05,
+  "public_train_runs": 6,
+  "public_calibration_runs": 2,
+  "target_runs": 3,
+  "fingerprints": 32,
+  "rank": 64,
+  "window": 8,
+  "pretrain_steps": 150,
+  "denoiser_steps": 1200,
+  "train_batch": 32
+}

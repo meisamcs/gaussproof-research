@@ -1,0 +1,7 @@
+{
+  "seconds": 104.00972390174866,
+  "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "public_classifier_accuracy": 0.8270000219345093,
+  "source_sha256": "2c10f086dd3fec086e8b3a42463e198a331146f98fff29fe55b5987947777d3e",
+  "torch": "2.5.1"
+}

@@ -1,0 +1,13 @@
+{
+  "source_sha256": {
+    "gaussproof/trajectory_dp.py": "5adb505e85987a1b88ef349352d0c6067285c7378651518908d8d200502a3e73",
+    "scripts/summarize_trajectory_dp.py": "b4237a3e589b9afaa279655ee63fc18d6473826e5003a934e9f47b47e64058b6",
+    "configs/trajectory_dp.json": "ec85810059b03d783140d519fbcb613fec905f1f3028c601c117cd6e36e8c46e",
+    "configs/trajectory_dp_full_history.json": "092620b4091d349e936b21969951b6d5226b277c4124c16f4977f07091605b97",
+    "docs/trajectory_dp_protocol.md": "b5e52c0ea47c90b35c56432ecc42b7c6195b14bf7f4b0c3da1a8b08842e1e8cf"
+  },
+  "python": "3.12.4",
+  "torch": "2.5.1",
+  "diffusers": "0.37.0",
+  "opacus": "1.5.2"
+}

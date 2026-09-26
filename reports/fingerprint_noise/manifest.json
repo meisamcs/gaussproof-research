@@ -1,0 +1,10 @@
+{
+  "README.md": "5290d3ac4770d83201b982b1847c0e99c6105e8039eab9a3062dd17564df61b9",
+  "completion.json": "08fdcee82efb28bbbffabb67734ca69f6b10d155e074ccac6bd21a813e688775",
+  "fingerprint_noise_tradeoff.pdf": "fab4e0e3b88275a70ce423764c337d362e8b28751c3514eeea712e55c24e340f",
+  "fingerprint_noise_tradeoff.png": "457ddc7f48c1e58975e309878738c2f18e4a873301fd99ffce6038046080c955",
+  "noise_thresholds.csv": "cb162ec76db223f8a1d829d8da6c7e38ad91608b2eb0bac47813c401b27b285b",
+  "per_template.csv": "81eec45bef655232a7fd370480ccffaf8e98de379fe6ffd7a10c4de996cb53c7",
+  "provenance.json": "ffb3f7623c94095ba6718fcf3dabc754d8977cd1f7a0aa5681babe20606e6a02",
+  "summary.csv": "fb9a8cdc40ea353a0053007b4534babb5ee650de6d025a3adb9b07001fe1e893"
+}

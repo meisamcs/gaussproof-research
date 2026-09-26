@@ -1,0 +1,4 @@
+# Install after the project's ordinary dependencies. U-Net and samplers are upstream.
+diffusers==0.37.0
+safetensors==0.8.0
+huggingface-hub==1.32.0

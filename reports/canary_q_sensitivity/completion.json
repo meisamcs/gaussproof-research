@@ -1,0 +1,27 @@
+{
+  "seconds": 848.6616311073303,
+  "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "sigma": 4.0,
+  "q_values": [
+    0.5,
+    0.1,
+    0.02,
+    0.004
+  ],
+  "prefixes": [
+    16,
+    32,
+    64,
+    128
+  ],
+  "holdout_identities": 20,
+  "identities_per_class": 2,
+  "sequences_per_identity": 3,
+  "trajectories": 480,
+  "exact_evolving_trajectory": true,
+  "endpoint_baseline": "negative candidate cross-entropy from final checkpoint only",
+  "q_conditions_share_nested_inclusion_draws": true,
+  "source_completion_sha256": "0a978672c32ac59fb77fc7c5cfa95666b0c0318a08a2ee3b8135744b8b4ab626",
+  "implementation_sha256": "0a41f96cdd2d8033b5cf564b808f1e0a447e7ad4bcf6c20a1d3e6bf3ebd26fc9",
+  "torch": "2.5.1"
+}

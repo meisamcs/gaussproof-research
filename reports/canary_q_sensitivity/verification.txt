@@ -1,0 +1,30 @@
+Participation-rate sensitivity verification
+
+Data SHA-256:
+  fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d
+
+Run:
+  sigma=4; q={0.5,0.1,0.02,0.004}; T={16,32,64,128}
+  20 stratified unseen identities; 3 paired sequences per identity
+  480 exact evolving trajectories; 1,920 prefix score rows
+  2,000 identity/paired-sequence bootstrap repetitions
+
+Validation:
+  48 smoke tests passed.
+  All lower-q positive inclusion schedules are subsets of higher-q schedules.
+  Negative endpoint scores are identical across paired q conditions.
+  Completed outputs are finite and the figure PDF contains one page.
+
+T=128 AUCs (trajectory / final checkpoint):
+  q=0.5:   0.805278 / 0.729722
+  q=0.1:   0.571111 / 0.548611
+  q=0.02:  0.531250 / 0.517083
+  q=0.004: 0.502639 / 0.497917
+
+Command:
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MPLCONFIGDIR=.cache/matplotlib \
+    .venv-diffusion/bin/python -u -m gaussproof.canary_q_sensitivity \
+    --source runs/canary_holdout \
+    --data /path/to/mnist_train.csv \
+    --config configs/canary_q_sensitivity.json \
+    --output runs/canary_q_sensitivity_paired

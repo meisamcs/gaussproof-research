@@ -1,0 +1,32 @@
+Learned unseen-canary comparison verification
+
+Source: runs/canary_holdout
+Run: runs/canary_learned
+Data: /path/to/mnist_train.csv
+Trajectories: 576
+Calibration identities: 4, leave-one-identity-out cross-fitting
+Untouched holdout identities: 4
+Models: bidirectional LSTM and conditional inclusion-schedule diffusion
+
+Commands:
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MPLCONFIGDIR=.cache/matplotlib \
+    .venv-diffusion/bin/python -u -m gaussproof.canary_learned \
+    --source runs/canary_holdout \
+    --data /path/to/mnist_train.csv \
+    --config configs/canary_learned.json --output runs/canary_learned
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MPLCONFIGDIR=.cache/matplotlib \
+    .venv-diffusion/bin/python -m gaussproof.cli smoke
+
+Results:
+  Full smoke suite: 43 tests passed after adding the long-trajectory audit.
+  Holdout sum-LLR AUC: 0.928819, 0.884115, 0.608507.
+  Holdout BiLSTM AUC: 0.899740, 0.864149, 0.610243.
+  Holdout diffusion AUC: 0.944010, 0.852431, 0.565538.
+  Diffusion-minus-sum-LLR paired 95% intervals:
+    sigma 0.25: +0.015191 [-0.003049, +0.035590]
+    sigma 1.00: -0.031684 [-0.085525, +0.014757]
+    sigma 4.00: -0.042969 [-0.113281, +0.026487]
+
+The same paired trajectories are used for every method. Bootstrap resampling is
+stratified by membership. With only four holdout canaries, intervals are
+descriptive and do not establish population-level generalization.

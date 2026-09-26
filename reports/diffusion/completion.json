@@ -1,0 +1,8 @@
+{
+  "status": "complete",
+  "elapsed_seconds": 934.0576541423798,
+  "trained_unets": 9,
+  "measurements": 12960,
+  "test_images_per_seed": 30,
+  "model_family": "Diffusers UNet2DModel, randomly initialized and trained on public gradient coefficients"
+}

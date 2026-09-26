@@ -1,0 +1,7 @@
+{
+  "gaussproof/sequence_images.py": "2c10f086dd3fec086e8b3a42463e198a331146f98fff29fe55b5987947777d3e",
+  "scripts/reconstruct_batches.py": "965732c8e3da1c198c25f82da6935074de1170cdb590672f7ef40dbeb9f81ff2",
+  "scripts/summarize_sequence_images.py": "5d4c01d37743002e13bdd43cf2b01dc63111926d989f7595d4907fc66d9ad9c0",
+  "configs/sequence_images.json": "a4ee960fba50d85b662aff016b67f54ba1ccb9c9aee7eef49b7609d50a4cc60a",
+  "docs/sequence_images_protocol.md": "075e69ed6116d86836039b0d5783ce913bc39ffbc67f9fe4c08ee4af46b145d3"
+}

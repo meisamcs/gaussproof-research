@@ -1,0 +1,33 @@
+Exact high-noise long-trajectory verification
+
+Source: runs/canary_holdout
+Run: runs/canary_long_sigma4
+Data: /path/to/mnist_train.csv
+Noise multiplier: sigma=4
+Trajectories: 96 exact evolving DP-SGD runs
+Prefixes: 16, 32, 64, and 128 releases
+Holdout canaries: 4
+Positive/negative sequences per canary: 12 paired seeds per class
+
+Commands:
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MPLCONFIGDIR=.cache/matplotlib \
+    .venv-diffusion/bin/python -u -m gaussproof.canary_long_trajectory \
+    --source runs/canary_holdout \
+    --data /path/to/mnist_train.csv \
+    --config configs/canary_long_trajectory.json \
+    --output runs/canary_long_sigma4
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MPLCONFIGDIR=.cache/matplotlib \
+    .venv-diffusion/bin/python -m gaussproof.cli smoke
+
+Results:
+  Full smoke suite: 43 tests passed.
+  Sum-LLR AUC at 16, 32, 64, 128 releases:
+    0.608507, 0.675347, 0.767795, 0.819010.
+  Paired 128-minus-16 AUC gain:
+    +0.210503, 95% cluster-bootstrap interval [+0.144076, +0.272146].
+  Conservative no-amplification epsilon upper bounds:
+    11.5971, 17.5723, 27.1941, 43.1446.
+
+The 16-round prefix exactly reproduces the prior unseen-canary holdout AUC.
+Bootstrap resampling clusters by canary identity and pairs positive/negative
+sequence indices. Four identities limit population-level interpretation.

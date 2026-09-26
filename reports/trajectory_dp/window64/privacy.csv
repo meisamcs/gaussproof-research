@@ -1,0 +1,4 @@
+sigma,clip,batch_size,population,steps,delta,epsilon,accountant
+1.0,0.1,32,2000,64,1e-05,1.4654755293978254,"Opacus RDP, Poisson, add/remove"
+4.0,0.1,32,2000,64,1e-05,0.11875911241478569,"Opacus RDP, Poisson, add/remove"
+16.0,0.1,32,2000,64,1e-05,0.024483349862382656,"Opacus RDP, Poisson, add/remove"

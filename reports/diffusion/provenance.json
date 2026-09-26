@@ -1,0 +1,165 @@
+{
+  "diffusers": "0.37.0",
+  "torch": "2.5.1",
+  "numpy": "1.26.4",
+  "python": "3.12.4",
+  "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "source_reconstruction_provenance": {
+    "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+    "source_sha256": "edb447b238aabd932c75ef1d8bfbce5c89e398e5cc192e48462a536614ec09b9",
+    "python": "3.12.4",
+    "numpy": "1.26.4",
+    "torch": "2.5.1",
+    "mechanism": "Gaussian clipped-gradient releases at fixed public checkpoints; NOT private training",
+    "target_label": "known to all methods",
+    "target_image": "withheld from learned estimators and inversion",
+    "adjacency": "replace-one target record; fixed public background",
+    "started_utc": "2026-09-19T19:51:42Z",
+    "report_source_sha256": "06c8f6f55566ccadc70df8616491ecb315103799183ad10a149dd3ec9e6902e5",
+    "report_script_sha256": "a6747806b5edda85a51547cbe48cdfa24a3c8715a66a6e120e074ccfa43a66a8",
+    "report_note": "Figures regenerated from unchanged measurements after correcting noise-axis tick labels. source_sha256 identifies the measurement implementation."
+  },
+  "mechanism": "Independent Gaussian corruption of individual or averaged clipped gradients at two fixed public checkpoints",
+  "representations": "64 public PCA coefficients per checkpoint, common scalar normalization; residual coordinates use Gaussian shrinkage",
+  "labels": "Known label histogram given equally to all estimators",
+  "bank": "256 public prior samples or public batch combinations per clipping/batch condition; test records excluded",
+  "iterative": "DDIM eta=0 reconstruction starting from the observed diffusion state; not guaranteed posterior mean",
+  "resumed_from_config": {
+    "seeds": [
+      17,
+      29,
+      43
+    ],
+    "clips": [
+      0.1,
+      1.0
+    ],
+    "batch_sizes": [
+      1,
+      8
+    ],
+    "absolute_noise": [
+      0.01,
+      0.1,
+      1.0
+    ],
+    "rank": 64,
+    "training_steps": 2000,
+    "prediction_types": [
+      "epsilon",
+      "sample",
+      "v_prediction"
+    ],
+    "train_batch": 32,
+    "learning_rate": 0.0005,
+    "diffusion_steps": 200,
+    "inference_steps": 100,
+    "bank_size": 256,
+    "calibration_batches": 32,
+    "evaluation_batches": 30,
+    "threads": 1
+  },
+  "previous_provenance": {
+    "diffusers": "0.37.0",
+    "torch": "2.5.1",
+    "numpy": "1.26.4",
+    "python": "3.12.4",
+    "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+    "source_reconstruction_provenance": {
+      "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+      "source_sha256": "edb447b238aabd932c75ef1d8bfbce5c89e398e5cc192e48462a536614ec09b9",
+      "python": "3.12.4",
+      "numpy": "1.26.4",
+      "torch": "2.5.1",
+      "mechanism": "Gaussian clipped-gradient releases at fixed public checkpoints; NOT private training",
+      "target_label": "known to all methods",
+      "target_image": "withheld from learned estimators and inversion",
+      "adjacency": "replace-one target record; fixed public background",
+      "started_utc": "2026-09-19T19:51:42Z",
+      "report_source_sha256": "06c8f6f55566ccadc70df8616491ecb315103799183ad10a149dd3ec9e6902e5",
+      "report_script_sha256": "a6747806b5edda85a51547cbe48cdfa24a3c8715a66a6e120e074ccfa43a66a8",
+      "report_note": "Figures regenerated from unchanged measurements after correcting noise-axis tick labels. source_sha256 identifies the measurement implementation."
+    },
+    "mechanism": "Independent Gaussian corruption of individual or averaged clipped gradients at two fixed public checkpoints",
+    "representations": "64 public PCA coefficients per checkpoint, common scalar normalization; residual coordinates use Gaussian shrinkage",
+    "labels": "Known label histogram given equally to all estimators",
+    "bank": "256 public prior samples or public batch combinations per clipping/batch condition; test records excluded",
+    "iterative": "DDIM eta=0 reconstruction starting from the observed diffusion state; not guaranteed posterior mean",
+    "resumed_from_config": {
+      "seeds": [
+        17,
+        29,
+        43
+      ],
+      "clips": [
+        0.1,
+        1.0
+      ],
+      "batch_sizes": [
+        1,
+        8
+      ],
+      "absolute_noise": [
+        0.01,
+        0.1,
+        1.0
+      ],
+      "rank": 64,
+      "training_steps": 2000,
+      "prediction_types": [
+        "epsilon",
+        "sample",
+        "v_prediction"
+      ],
+      "train_batch": 32,
+      "learning_rate": 0.0005,
+      "diffusion_steps": 200,
+      "inference_steps": 100,
+      "bank_size": 256,
+      "calibration_batches": 32,
+      "evaluation_batches": 30,
+      "threads": 2
+    },
+    "previous_provenance": {
+      "diffusers": "0.37.0",
+      "torch": "2.5.1",
+      "numpy": "1.26.4",
+      "python": "3.12.4",
+      "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+      "source_reconstruction_provenance": {
+        "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+        "source_sha256": "edb447b238aabd932c75ef1d8bfbce5c89e398e5cc192e48462a536614ec09b9",
+        "python": "3.12.4",
+        "numpy": "1.26.4",
+        "torch": "2.5.1",
+        "mechanism": "Gaussian clipped-gradient releases at fixed public checkpoints; NOT private training",
+        "target_label": "known to all methods",
+        "target_image": "withheld from learned estimators and inversion",
+        "adjacency": "replace-one target record; fixed public background",
+        "started_utc": "2026-09-19T19:51:42Z",
+        "report_source_sha256": "06c8f6f55566ccadc70df8616491ecb315103799183ad10a149dd3ec9e6902e5",
+        "report_script_sha256": "a6747806b5edda85a51547cbe48cdfa24a3c8715a66a6e120e074ccfa43a66a8",
+        "report_note": "Figures regenerated from unchanged measurements after correcting noise-axis tick labels. source_sha256 identifies the measurement implementation."
+      },
+      "mechanism": "Independent Gaussian corruption of individual or averaged clipped gradients at two fixed public checkpoints",
+      "representations": "64 public PCA coefficients per checkpoint, common scalar normalization; residual coordinates use Gaussian shrinkage",
+      "labels": "Known label histogram given equally to all estimators",
+      "bank": "256 public prior samples or public batch combinations per clipping/batch condition; test records excluded",
+      "iterative": "DDIM eta=0 reconstruction starting from the observed diffusion state; not guaranteed posterior mean",
+      "sources": {
+        "diffusion_lab.py": "00bc86660a021860cc5b3973616443719264e72b453185cd74b60dac4b1d739c",
+        "diffusion_denoiser.py": "5115e1991e2a56bb29050efb8a76a9e4fb51a0ded3b85856910e81d88a30cfa6"
+      }
+    },
+    "sources": {
+      "diffusion_lab.py": "107581cb77f340d175ee45d9a3658aa3e43d5b51bf3a8320d8f31635e2daa4d9",
+      "diffusion_denoiser.py": "5115e1991e2a56bb29050efb8a76a9e4fb51a0ded3b85856910e81d88a30cfa6"
+    }
+  },
+  "public_gradient_and_pca_threads": 2,
+  "unet_training_threads": 1,
+  "sources": {
+    "diffusion_lab.py": "00d70b34f86a197e7a991a6557d09dc728c563671921443c3b9082dfbea69f39",
+    "diffusion_denoiser.py": "5115e1991e2a56bb29050efb8a76a9e4fb51a0ded3b85856910e81d88a30cfa6"
+  }
+}

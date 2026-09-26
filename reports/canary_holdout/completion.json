@@ -1,0 +1,19 @@
+{
+  "seconds": 155.93476915359497,
+  "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "calibration_canaries": [
+    57871,
+    19252,
+    39321,
+    28483
+  ],
+  "holdout_canaries": [
+    11243,
+    44690,
+    4207,
+    37991
+  ],
+  "sequences": 576,
+  "calibration_is_disjoint_from_holdout": true,
+  "torch": "2.5.1"
+}

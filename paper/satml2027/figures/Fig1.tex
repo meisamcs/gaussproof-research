@@ -1,0 +1,77 @@
+\begin{tikzpicture}[
+  >=Latex,
+  font=\small,
+  box/.style={draw, rounded corners=2pt, thick, align=center, minimum height=11mm, text width=30mm, inner sep=2mm},
+  mathbox/.style={draw, rounded corners=2pt, thick, align=center, minimum height=11mm, text width=39mm, inner sep=2mm},
+  scorebox/.style={draw, rounded corners=2pt, thick, align=center, minimum height=12mm, text width=32mm, inner sep=2mm},
+  accumbox/.style={draw, rounded corners=2pt, thick, align=center, minimum height=12mm, text width=48mm, inner sep=2mm},
+  inputbox/.style={draw, rounded corners=2pt, thick, align=center, minimum height=9mm, text width=28mm, inner sep=2mm},
+  flow/.style={->, thick},
+  hidden/.style={draw, dashed, rounded corners=2pt, thick, inner sep=2mm}
+]
+  \definecolor{boxblue}{RGB}{225,233,244}
+  \definecolor{boxbeige}{RGB}{243,231,217}
+  \definecolor{boxgreen}{RGB}{226,236,227}
+  \definecolor{boxyellow}{RGB}{244,234,194}
+  \definecolor{boxlav}{RGB}{234,231,245}
+
+  %\node[font=\bfseries\Large, anchor=west] (title) at (0,4.25) {\textsc{GaussProof} audit};
+
+  % Top row: mechanism and observation.
+  \node[box, fill=boxblue, anchor=west] (private) at (0,2.05)
+    {Private batch at round $t$\\clipped per-record gradients};
+  \node[box, fill=boxbeige, right=5mm of private] (release)
+    {DP-SGD release\\$y_t=$ clipped minibatch mean\\$+\;\Normal(0,\sigma^2 C^2 I)$};
+  \node[box, fill=boxblue, right=5mm of release] (observer)
+    {White-box observer\\public checkpoint $\theta_t$\\and released update $y_t$};
+
+  % Candidate-conditioned quantities are stacked so their connections to the
+  % likelihood box remain visually separate.
+  \node[mathbox, fill=boxlav, below=5mm of observer] (background)
+    {Public background estimate\\[0.8mm]
+     {\footnotesize $b_t=\E_{x\sim D_{\mathrm{pub}}}\!\left[\clip(\nabla\ell(\theta_t;x))\right]$}};
+  \node[mathbox, fill=boxlav, below=5mm of background] (fingerprint)
+    {Candidate fingerprint\\[0.8mm]
+     {\footnotesize $h_t=\clip(\nabla\ell(\theta_t;z))$}};
+
+  \node[scorebox, fill=boxyellow, right=5mm of background] (roundscore)
+    {Per-round evidence\\[0.8mm]
+     {\footnotesize $\displaystyle \ell_t=\log\!\frac{p(y_t\mid H_1,h_t,b_t)}{p(y_t\mid H_0,b_t)}$}};
+  \node[accumbox, fill=boxyellow, right=5mm of roundscore] (accum)
+    {Accumulate through time\\[0.8mm]
+     {\footnotesize $\displaystyle M_T=\sum_t\log\!\left[(1-q)+q\exp(\ell_t)\right]$}};
+  \node[box, fill=boxgreen, above=5mm of accum] (decision)
+    {Trajectory decision\\membership score or gallery rank};
+
+  % Public and candidate inputs.
+  \node[inputbox, fill=boxlav!55, left=5mm of background] (pubdata)
+    {Public reference data\\$D_{\mathrm{pub}}$};
+  \node[inputbox, fill=boxlav!55, left=5mm of fingerprint] (candidate)
+    {Candidate record\\$z$};
+
+  % Main DP-SGD trajectory.
+  \draw[flow] (private.east) -- (release.west);
+  \draw[flow] (release.east) -- (observer.west);
+
+  % Public and candidate-conditioned quantities.
+  \draw[flow] (observer.south) -- (background.north);
+  \draw[flow] (observer.south east) -- (roundscore.north west);
+  \draw[flow] (pubdata.east) -- (background.west);
+  \draw[flow] (candidate.east) -- (fingerprint.west);
+
+  % Three distinct inputs to the per-round likelihood.  Each arrow terminates
+  % on a box boundary and no connector crosses another box.
+  \draw[flow] (background.east) -- (roundscore.west);
+  \draw[flow] (fingerprint.east) -| ([xshift=0mm]roundscore.south);
+
+  % Temporal accumulation and final decision.
+  \draw[flow] (roundscore.east) -- (accum.west);
+  \draw[flow] (accum.north) -- (decision.south);
+
+  % Hidden information: keep this annotation compact and local to the private
+  % side so it cannot overlap the likelihood connectors.
+  \node[hidden, fit=(private)] (hiddenbox) {};
+  %\node[anchor=north west, font=\small, align=left, text width=60mm]
+  %  at ($(private.south west)+(0,-0.95)$)
+  %  {Hidden from the observer: private batch contents, hidden inclusion schedule $I_t$, and sampled Gaussian noise.};
+\end{tikzpicture}

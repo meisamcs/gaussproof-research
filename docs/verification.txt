@@ -1,0 +1,36 @@
+test_controls (test_core.AttackTests.test_controls) ... ok
+test_logistic_heldout_signal (test_core.AttackTests.test_logistic_heldout_signal) ... ok
+test_rmia_matches_explicit_population_test (test_core.AttackTests.test_rmia_matches_explicit_population_test) ... ok
+test_sparse_recovery_and_candidate_permutation (test_core.AttackTests.test_sparse_recovery_and_candidate_permutation) ... ok
+test_csv_header_and_pixel_orientation (test_core.DataTests.test_csv_header_and_pixel_orientation) ... ok
+test_fixed_disjoint_roles (test_core.DataTests.test_fixed_disjoint_roles) ... ok
+test_auc_matches_pairwise_definition (test_core.MetricsTests.test_auc_matches_pairwise_definition) ... ok
+test_low_fpr_no_tie_splitting (test_core.MetricsTests.test_low_fpr_no_tie_splitting) ... ok
+test_perfect_reversed_and_tied (test_core.MetricsTests.test_perfect_reversed_and_tied) ... ok
+test_reject_bad_inputs (test_core.MetricsTests.test_reject_bad_inputs) ... ok
+test_accountant_monotonic (test_core.TrainingTests.test_accountant_monotonic) ... ok
+test_reproducible_training (test_core.TrainingTests.test_reproducible_training) ... ok
+test_saved_release_is_actual_update (test_core.TrainingTests.test_saved_release_is_actual_update) ... ok
+test_vmap_matches_individual_autograd (test_core.TrainingTests.test_vmap_matches_individual_autograd) ... ok
+test_clipping_precedes_average_and_noise_loss_identity (test_diffusion.DiffusionTests.test_clipping_precedes_average_and_noise_loss_identity) ... ok
+test_official_noise_conversion_recovers_known_clean_gradient (test_diffusion.DiffusionTests.test_official_noise_conversion_recovers_known_clean_gradient) ... ok
+test_tiny_training_conditioning_and_saved_upstream_model (test_diffusion.DiffusionTests.test_tiny_training_conditioning_and_saved_upstream_model) ... ok
+test_noise_threshold_exactly_attains_power_cap (test_fingerprint_bounds.FingerprintBoundTests.test_noise_threshold_exactly_attains_power_cap) ... ok
+test_risk_bound_and_noise_monotonicity (test_fingerprint_bounds.FingerprintBoundTests.test_risk_bound_and_noise_monotonicity) ... ok
+test_complete_artifacts_and_calibration_separation (test_integration.IntegrationTest.test_complete_artifacts_and_calibration_separation) ... ok
+test_complete_reconstruction_artifacts (test_reconstruction.ReconstructionTests.test_complete_reconstruction_artifacts) ... ok
+test_gaussian_posterior_matches_dense_covariance (test_reconstruction.ReconstructionTests.test_gaussian_posterior_matches_dense_covariance) ... ok
+test_likelihood_uses_candidate_norm_and_sample_mean_sufficiency (test_reconstruction.ReconstructionTests.test_likelihood_uses_candidate_norm_and_sample_mean_sufficiency) ... ok
+test_splits_balanced_and_disjoint (test_reconstruction.ReconstructionTests.test_splits_balanced_and_disjoint) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 19.670s
+
+OK
+
+Saved-scheduler inference recheck:
+...
+----------------------------------------------------------------------
+Ran 3 tests in 4.985s
+
+OK

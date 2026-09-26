@@ -1,0 +1,16 @@
+Run: runs/canary_gallery_v3
+Completed trajectories: 80
+Per-trajectory prefixes: 16, 32, 64, 128
+Retrieval rows: 1280
+Summary rows: 32
+Gallery images: 32
+True canary identities: 10
+Trajectory repetitions per identity and distribution: 2
+Noise multiplier: 4.0
+Clip norm: 1.0
+Batch size: 8
+Canary inclusion probability: 0.5
+Wall time: 214.673 seconds
+Dataset SHA256: fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d
+Implementation SHA256: 10c94052e04a97f711b774265c067b113270d7af5dcafb50b632b2a50fa62012
+

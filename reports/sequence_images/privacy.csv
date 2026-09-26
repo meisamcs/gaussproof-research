@@ -1,0 +1,3 @@
+sigma,clip,batch_size,steps,delta,epsilon_upper,accountant
+0.05,1.0,2,16,1e-05,13567.764145950092,replace-one zCDP; no sampling amplification; per run
+0.5,1.0,2,16,1e-05,204.7764145950093,replace-one zCDP; no sampling amplification; per run

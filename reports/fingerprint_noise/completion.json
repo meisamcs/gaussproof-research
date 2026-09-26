@@ -1,0 +1,8 @@
+{
+  "status": "complete",
+  "templates": 90,
+  "conditions": 9,
+  "simulated_hypothesis_observations": 32400000,
+  "matched_false_alarm_max_deviation": 0.0001266666666666673,
+  "max_mean_power_error": 0.00024237441235264168
+}
