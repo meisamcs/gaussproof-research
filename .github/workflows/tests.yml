@@ -1,0 +1,21 @@
+name: Benchmark tests
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        components: [core, diffusion]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install -r requirements-tested.txt -e .
+      - if: matrix.components == 'diffusion'
+        run: pip install -r requirements-trajectory.txt
+      - run: python -m gaussproof.cli smoke
+        env:
+          OPENBLAS_NUM_THREADS: '1'
+          OMP_NUM_THREADS: '2'
