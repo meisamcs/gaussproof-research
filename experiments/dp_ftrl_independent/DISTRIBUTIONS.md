@@ -70,6 +70,11 @@ repository does **not** include the `data/pub.pt`, `data/priv_out.pt`, or
 `weights/01_MIA_67.pt` named by its default configuration, so its full command
 cannot be reproduced as published. We use its score equations as an extra
 cross-check and baseline, without importing its absent training artifacts.
+We also ran both original attack classes on independently trained, real
+non-DP EMNIST models and checked record-score parity on three seeds. That
+positive control, including original-paper LiRA/RMIA and an independent-model
+control, is documented in
+[the non-DP validation report](../../reports/no_dp_mia_validation/README.md).
 The optional [`verify_pierre_joly.py`](verify_pierre_joly.py) loads that pinned
 source, checks SHA-256 hashes of both attack files, runs the original attack
 classes on synthetic PyTorch models, and asserts record-score parity with

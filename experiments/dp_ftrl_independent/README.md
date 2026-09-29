@@ -5,6 +5,9 @@ three client-data arrangements, independently repeated target-training seeds,
 and original-paper RMIA/LiRA plus the pinned Pierre-Joly scoring variants.
 Its [aggregate report](../../reports/dp_ftrl_distributions/README.md) contains
 the measured results and figure.
+The [non-DP EMNIST validation](../../reports/no_dp_mia_validation/README.md)
+first confirms that original-paper LiRA and RMIA, plus the linked repository's
+scoring variants, detect genuine record membership on three independent splits.
 
 This experiment is an **independent, source-aligned pilot**, not an execution
 of the authors' TensorFlow Federated (TFF) training driver. The exact official
