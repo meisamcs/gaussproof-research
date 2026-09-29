@@ -1,0 +1,126 @@
+{
+  "bank12": {
+    "dataset_url": "https://storage.googleapis.com/gresearch/fedjax/emnist/federated_emnist_digitsonly_train.sqlite",
+    "federated_emnist_sha256": "0540b878da75b6a9a8c14fadae5c4b0a62cf12f8ff5fcf675b6f6c6c774df323",
+    "note": "One-step 7x7-pooled softmax clients, not the upstream EMNIST CNN. Checkpoint attack has server-log access. Background clients are hidden from the public attacks. The informed LLR uses their updates and the insertion round. Results are an exploratory pilot.",
+    "parameters": {
+      "bootstrap": 1000,
+      "calibration_identities": 40,
+      "client_lr": 0.2,
+      "clients_per_round": 8,
+      "clip": 0.25,
+      "delta": 1e-05,
+      "examples": 16,
+      "holdout_identities": 100,
+      "iterations": 40,
+      "momentum": 0.9,
+      "penalty": 0.0001,
+      "position": 64,
+      "public": 12,
+      "public_pool": 64,
+      "rounds": 128,
+      "seed": 20261005,
+      "server_lr": 0.005,
+      "sigma": [
+        4.0
+      ]
+    },
+    "status": "source-aligned NumPy/PyTorch-free pilot; official TFF did not run",
+    "tf_privacy_version": "0.6.0 algorithm transcribed",
+    "upstream_sha": "a5af8c4433c9ee2d2b1565f1bcc68c89e2000a6b"
+  },
+  "bank64": {
+    "dataset_url": "https://storage.googleapis.com/gresearch/fedjax/emnist/federated_emnist_digitsonly_train.sqlite",
+    "federated_emnist_sha256": "0540b878da75b6a9a8c14fadae5c4b0a62cf12f8ff5fcf675b6f6c6c774df323",
+    "note": "One-step 7x7-pooled softmax clients, not the upstream EMNIST CNN. Checkpoint attack has server-log access. Background clients are hidden from the public attacks. The informed LLR uses their updates and the insertion round. Results are an exploratory pilot.",
+    "parameters": {
+      "bootstrap": 1000,
+      "calibration_identities": 40,
+      "client_lr": 0.2,
+      "clients_per_round": 8,
+      "clip": 0.25,
+      "delta": 1e-05,
+      "examples": 16,
+      "holdout_identities": 100,
+      "iterations": 40,
+      "momentum": 0.9,
+      "penalty": 0.0001,
+      "position": 64,
+      "public": 64,
+      "public_pool": 64,
+      "rounds": 128,
+      "seed": 20261005,
+      "server_lr": 0.005,
+      "sigma": [
+        4.0
+      ]
+    },
+    "status": "source-aligned NumPy/PyTorch-free pilot; official TFF did not run",
+    "tf_privacy_version": "0.6.0 algorithm transcribed",
+    "upstream_sha": "a5af8c4433c9ee2d2b1565f1bcc68c89e2000a6b"
+  },
+  "early": {
+    "dataset_url": "https://storage.googleapis.com/gresearch/fedjax/emnist/federated_emnist_digitsonly_train.sqlite",
+    "federated_emnist_sha256": "0540b878da75b6a9a8c14fadae5c4b0a62cf12f8ff5fcf675b6f6c6c774df323",
+    "note": "One-step 7x7-pooled softmax clients, not the upstream EMNIST CNN. Checkpoint attack has server-log access. Background clients are hidden from the public attacks. The informed LLR uses their updates and the insertion round. Results are an exploratory pilot.",
+    "parameters": {
+      "bootstrap": 1000,
+      "calibration_identities": 40,
+      "client_lr": 0.2,
+      "clients_per_round": 8,
+      "clip": 0.25,
+      "delta": 1e-05,
+      "examples": 16,
+      "holdout_identities": 100,
+      "iterations": 40,
+      "momentum": 0.9,
+      "penalty": 0.0001,
+      "position": 0,
+      "public": 12,
+      "public_pool": 64,
+      "rounds": 128,
+      "seed": 20261007,
+      "server_lr": 0.005,
+      "sigma": [
+        1.0,
+        4.0,
+        8.0
+      ]
+    },
+    "status": "source-aligned NumPy/PyTorch-free pilot; official TFF did not run",
+    "tf_privacy_version": "0.6.0 algorithm transcribed",
+    "upstream_sha": "a5af8c4433c9ee2d2b1565f1bcc68c89e2000a6b"
+  },
+  "late": {
+    "dataset_url": "https://storage.googleapis.com/gresearch/fedjax/emnist/federated_emnist_digitsonly_train.sqlite",
+    "federated_emnist_sha256": "0540b878da75b6a9a8c14fadae5c4b0a62cf12f8ff5fcf675b6f6c6c774df323",
+    "note": "One-step 7x7-pooled softmax clients, not the upstream EMNIST CNN. Checkpoint attack has server-log access. Background clients are hidden from the public attacks. The informed LLR uses their updates and the insertion round. Results are an exploratory pilot.",
+    "parameters": {
+      "bootstrap": 1000,
+      "calibration_identities": 40,
+      "client_lr": 0.2,
+      "clients_per_round": 8,
+      "clip": 0.25,
+      "delta": 1e-05,
+      "examples": 16,
+      "holdout_identities": 100,
+      "iterations": 40,
+      "momentum": 0.9,
+      "penalty": 0.0001,
+      "position": 64,
+      "public": 12,
+      "public_pool": 64,
+      "rounds": 128,
+      "seed": 20261007,
+      "server_lr": 0.005,
+      "sigma": [
+        1.0,
+        4.0,
+        8.0
+      ]
+    },
+    "status": "source-aligned NumPy/PyTorch-free pilot; official TFF did not run",
+    "tf_privacy_version": "0.6.0 algorithm transcribed",
+    "upstream_sha": "a5af8c4433c9ee2d2b1565f1bcc68c89e2000a6b"
+  }
+}
