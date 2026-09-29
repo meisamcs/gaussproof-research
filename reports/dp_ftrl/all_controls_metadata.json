@@ -1,0 +1,39 @@
+{
+  "upstream_url": "https://github.com/google-research/DP-FTRL",
+  "upstream_commit": "513500a8e31e412972a7d457e9c66756e4a48348",
+  "mechanism": "official efficient tree",
+  "dataset": "MNIST CSV, not redistributed",
+  "model": "softmax regression, official FTRLOptimizer, momentum=0",
+  "threat_model": "known canary insertion round; exact other-record and batch-schedule access for informed score",
+  "public_score": "fixed disjoint 128-image background estimate",
+  "unknown_background_counts": [
+    1,
+    8,
+    32
+  ],
+  "same_class_decoy_control": true,
+  "rounds": 128,
+  "position": 1,
+  "batch_size": 64,
+  "sigma_multiplier": 4.0,
+  "clip": 1.0,
+  "alpha": 64.0,
+  "calibration_identities": 40,
+  "holdout_identities": 60,
+  "calibration_fpr_resolution": 0.008333333333333333,
+  "ci_method": "95% normal interval from identity-cluster bootstrap standard deviation",
+  "repetitions_per_identity": 3,
+  "seed": 20260930,
+  "node_noise_draws": 255,
+  "delta": 1e-05,
+  "rho_standard_tree_upper_bound": 0.25,
+  "epsilon_conservative_zcdp_upper_bound": 3.643070212207556,
+  "mean_holdout_validation_accuracy": 0.8317057291666666,
+  "mean_holdout_negative_validation_accuracy": 0.8317003038194445,
+  "limitations": [
+    "Not a run of the authors' full CNN or TensorFlow Federated pipeline.",
+    "Informed gradient subtraction knows other records and the batch schedule.",
+    "Public-background score uses a Gaussian likelihood that omits minibatch variance.",
+    "No claim of violating the formal DP guarantee or reconstructing unknown images."
+  ]
+}
