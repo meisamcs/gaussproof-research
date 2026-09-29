@@ -8,6 +8,12 @@ without relying on private checkpoints or a particular machine.
 For the immediate SaTML deadline, follow the focused
 [`docs/STUDENT_MONDAY_EXECUTION_PLAN.md`](docs/STUDENT_MONDAY_EXECUTION_PLAN.md).
 
+The separate federated DP-FTRL follow-up is specified in
+[`docs/dp_ftrl_federated_student_task.md`](docs/dp_ftrl_federated_student_task.md).
+It starts from the completed centralized audit but requires the official
+federated implementation, a client-level threat model, and a matched test of
+the actual GAUSSPROOF sparse decoder before any federated claim is made.
+
 ## Scientific question
 
 GAUSSPROOF studies whether a weak record-specific gradient fingerprint that is hard
