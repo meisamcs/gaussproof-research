@@ -14,6 +14,12 @@ pinned tree-noise implementation. The trajectory signal depends strongly on
 knowing the other batch records; this is a controlled audit, not a general
 attack on deployed federated DP-FTRL.
 
+**Federated client-distribution pilot:** [methods and validation](experiments/dp_ftrl_independent/DISTRIBUTIONS.md)
+and [three-seed results with RMIA/LiRA endpoints](reports/dp_ftrl_distributions/README.md)
+compare natural writer, IID-mixed, and label-sorted EMNIST clients. The
+source-aligned NumPy mechanism does not find a GAUSSPROOF advantage at high
+noise; the lower-noise stress condition is reported separately.
+
 **Status:** active research implementation. GAUSSPROOF includes a bounded nonnegative
 sparse trajectory decoder, exact known-fingerprint likelihood tests, learned temporal
 denoisers, and reconstruction studies. The RERO-style baseline is mean gradient
