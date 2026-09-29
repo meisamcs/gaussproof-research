@@ -1,5 +1,11 @@
 # Independent federated DP-FTRLM checkpoint pilot
 
+The [distribution and endpoint-baseline extension](DISTRIBUTIONS.md) adds
+three client-data arrangements, independently repeated target-training seeds,
+and original-paper RMIA/LiRA plus the pinned Pierre-Joly scoring variants.
+Its [aggregate report](../../reports/dp_ftrl_distributions/README.md) contains
+the measured results and figure.
+
 This experiment is an **independent, source-aligned pilot**, not an execution
 of the authors' TensorFlow Federated (TFF) training driver. The exact official
 TFF 0.20 dependency set could not be installed on the local Apple Silicon

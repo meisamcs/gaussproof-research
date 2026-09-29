@@ -173,7 +173,7 @@ def sparse_coordinate(bank: np.ndarray, observation: np.ndarray,
 def simulate(data, candidate_id, background_ids, public_ids, validation,
              *, member, rounds, position, clients_per_round, sigma, clip,
              client_lr, server_lr, momentum, seed, matrix, penalty,
-             sparse_iterations):
+             sparse_iterations, capture_final=False):
     dim = 50 * 10
     weights = np.zeros((10, 50), np.float64)
     initial = weights.copy()
@@ -277,7 +277,7 @@ def simulate(data, candidate_id, background_ids, public_ids, validation,
     solve = np.linalg.solve(covariance, shifted)
     informed = float((solve @ projected - .5 * (shifted @ solve)
                       * (hflat @ hflat)) / (node_std * node_std))
-    return {
+    result = {
         "rero_max": float(max(rero)),
         "rero_mean": float(np.mean(rero)),
         "gaussproof_max": float(max(sparse)),
@@ -289,6 +289,11 @@ def simulate(data, candidate_id, background_ids, public_ids, validation,
         "sparse_saturation": float(np.mean(np.asarray(sparse) >= .999)),
         "noise_check": float(np.linalg.norm(noise_prefix[-1])),
     }
+    if capture_final:
+        # In-memory access for matched endpoint attacks. Never written by
+        # run_pilot, which records only aggregate metrics.
+        result["final_weights"] = weights.copy()
+    return result
 
 
 def auc(pos, neg):
@@ -362,7 +367,7 @@ def epsilon_upper(rounds, sigma, delta):
 
 def write_csv(path, rows):
     with path.open("w", newline="") as stream:
-        writer = csv.DictWriter(stream, rows[0].keys())
+        writer = csv.DictWriter(stream, rows[0].keys(), lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
