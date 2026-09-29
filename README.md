@@ -8,6 +8,12 @@ measurements and paper-ready vector figures.
 **Start here:** [STUDENT_HANDOFF.md](STUDENT_HANDOFF.md) records the current evidence,
 the exact boundary of the claims, and the prioritized work needed to finish the paper.
 
+**DP-FTRL checkpoint audit:** [experiment and reproduction commands](experiments/dp_ftrl/README.md)
+and [measured results with figures](reports/dp_ftrl/README.md) use the authors'
+pinned tree-noise implementation. The trajectory signal depends strongly on
+knowing the other batch records; this is a controlled audit, not a general
+attack on deployed federated DP-FTRL.
+
 **Status:** active research implementation. GAUSSPROOF includes a bounded nonnegative
 sparse trajectory decoder, exact known-fingerprint likelihood tests, learned temporal
 denoisers, and reconstruction studies. The RERO-style baseline is mean gradient
