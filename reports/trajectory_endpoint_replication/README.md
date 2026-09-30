@@ -35,9 +35,12 @@ likelihood, but its paired gain over LiRA is also not clearly nonzero. A
 calibration-selected linear fusion of LiRA and the q-aware score chooses
 **zero trajectory weight** at q=0.5,T=128. Fusion with raw alignment has AUC
 0.835 versus LiRA's 0.830, paired gain interval [-0.001, 0.010]. The
-current evidence therefore does **not** establish a useful extra trajectory
-signal beyond a strong final-model attack when the model retains useful
-accuracy.
+q-aware score **does** improve RMIA itself from 0.782 to 0.803, paired gain
+0.021 [0.007, 0.035]. Raw alignment plus RMIA reaches 0.843, but its gain
+over LiRA is only 0.013 [-0.006, 0.030]. The current evidence therefore does
+**not** establish a useful extra q-aware trajectory signal beyond the
+strongest final-model attack when the model retains useful accuracy; the
+RMIA-specific fusion gain is not unique to GAUSSPROOF.
 
 At q=0.1 the methods are weak, and an ordinary-record proxy q=0.004 was
 near chance in the earlier sensitivity pilot. The strong q=0.5 condition
