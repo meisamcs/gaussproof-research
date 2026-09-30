@@ -37,6 +37,8 @@ def fixed_world(initial, x, labels, population, background, target, dummy,
     rng = np.random.default_rng(seed)
     noise_rng = torch.Generator().manual_seed(seed + 1000000)
     q, batch = cfg["q"], cfg["batch_size"]
+    if not 0 <= q <= 1:
+        raise ValueError("Slot inclusion probability must be in [0, 1]")
     sd = cfg["sigma"] * cfg["clip"] / batch
     aggregate, last, raw = 0., 0., 0.
     inclusions = 0
@@ -57,9 +59,14 @@ def fixed_world(initial, x, labels, population, background, target, dummy,
         s0, s1 = (h0 - b) / batch, (h1 - b) / batch
         l0 = (torch.dot(residual, s0) - .5 * torch.dot(s0, s0)) / sd**2
         l1 = (torch.dot(residual, s1) - .5 * torch.dot(s1, s1)) / sd**2
-        p0 = np.logaddexp(np.log1p(-q), np.log(q) + float(l0))
-        p1 = np.logaddexp(np.log1p(-q), np.log(q) + float(l1))
-        last = p1 - p0
+        if q == 0:
+            last = 0.
+        elif q == 1:
+            last = float(l1 - l0)
+        else:
+            p0 = np.logaddexp(np.log1p(-q), np.log(q) + float(l0))
+            p1 = np.logaddexp(np.log1p(-q), np.log(q) + float(l1))
+            last = p1 - p0
         aggregate += last
         raw += float(torch.dot(residual, h1 - h0))
         update(model, release, cfg["learning_rate"])
