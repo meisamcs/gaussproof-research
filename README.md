@@ -16,9 +16,11 @@ attack on deployed federated DP-FTRL.
 
 **Federated client-distribution pilot:** [corrected three-seed DP-FTRLM
 comparison with calibrated LiRA/RMIA](reports/dp_ftrl_calibrated_uniform/README.md).
-The [paired LiRA/RMIA + GAUSSPROOF study](reports/dp_ftrl_hybrid_uniform/README.md)
-tests whether checkpoint trajectories add membership signal beyond final-model
-attacks in the same pilot.
+The [repeated-client q sweep](reports/dp_ftrl_repeated_q/README.md) tests
+high-participation cohorts against LiRA, RMIA, RERO-style, and GAUSSPROOF
+with and without endpoint–trajectory fusion. The
+[one-participation control](reports/dp_ftrl_hybrid_uniform/README.md) tests
+the same fusion without repeated fingerprints.
 The [earlier distribution study](reports/dp_ftrl_distributions/README.md)
 used digit-skewed writer prefixes and is retained only as a historical audit.
 These studies compare natural writer, IID-mixed, and label-sorted EMNIST
