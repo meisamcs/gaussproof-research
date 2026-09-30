@@ -1,0 +1,10 @@
+{
+  "seed": 20260929,
+  "sigma": 4.0,
+  "prefix_steps": [16, 32, 64, 128],
+  "gallery_size": 32,
+  "true_candidates": 30,
+  "repetitions": 2,
+  "bootstrap_repetitions": 2000,
+  "distributions": ["balanced", "long_tail", "canary_rare", "canary_dominant"]
+}
