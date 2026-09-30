@@ -1,0 +1,20 @@
+{
+  "seeds": [
+    20261011,
+    20261013,
+    20261017
+  ],
+  "conditions": {
+    "low_noise": 0.25,
+    "high_noise": 4.0
+  },
+  "modes": [
+    "natural_writer",
+    "iid_mixed",
+    "label_sorted"
+  ],
+  "federated_emnist_sha256": "0540b878da75b6a9a8c14fadae5c4b0a62cf12f8ff5fcf675b6f6c6c774df323",
+  "calibration": "40 identities select endpoint variant and hybrid weight; 80 disjoint identities evaluate",
+  "trajectory_access": "Full global checkpoints and known candidate client data; endpoint-alone attacks see final model only",
+  "limitations": "Source-aligned NumPy softmax pilot, one candidate appearance, low utility at sigma 4; seed ranges are not confidence intervals"
+}
