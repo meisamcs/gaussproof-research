@@ -1,0 +1,64 @@
+{
+  "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "source_checkpoint_sha256": "ec9d8673f8c4e3ffc9611c82afeb047a0bcb94aa8f24d1b7fa6746203d933edb",
+  "dummy_index": 24898,
+  "target_index": 46993,
+  "dummy_digit": 9,
+  "target_digit": 4,
+  "calibration_pairs": 30,
+  "holdout_pairs": 80,
+  "epsilon_accounting": "replace-one zCDP; no sampling amplification",
+  "sampler": "Bernoulli privileged slot; not ordinary uniform minibatch DP-SGD",
+  "paired_randomness_across_conditions": true,
+  "processed_clip_values": [
+    1.0
+  ],
+  "processed_conditions": 5,
+  "configured_conditions": 15,
+  "delta": 1e-05,
+  "elapsed_seconds": 2009.8721899986267,
+  "torch": "2.5.1",
+  "grid_clip_values": [
+    1.0,
+    0.1,
+    4.0
+  ],
+  "grid_sigmas": [
+    2.0,
+    4.0,
+    8.0,
+    16.0,
+    32.0
+  ],
+  "low_epsilon_tail_sigmas": [
+    64.0,
+    128.0
+  ],
+  "weak_clipping_control_clip_values": [
+    16.0
+  ],
+  "grid_conditions": 15,
+  "tail_conditions": 2,
+  "weak_clipping_conditions": 5,
+  "utility_rescue_conditions": 3,
+  "utility_rescue_batch_sizes": [
+    32,
+    64,
+    128
+  ],
+  "familywise_confidence_tests": 200,
+  "clip_group_reports": [
+    "reports/clip_noise_sweep",
+    "reports/clip_noise_sweep_C0p1",
+    "reports/clip_noise_sweep_C4"
+  ],
+  "tail_report": "reports/clip_noise_low_epsilon_tail",
+  "weak_clipping_report": "reports/clip_noise_weak_clipping_tail",
+  "utility_rescue_reports": [
+    "reports/clip_noise_utility_rescue_B32",
+    "reports/clip_noise_utility_rescue_B64",
+    "reports/clip_noise_utility_rescue_B128"
+  ],
+  "auc_interval": "observed AUC +/- 1.96 paired-bootstrap standard errors",
+  "gain_interval": "observed AUC gap +/- 1.96 paired-bootstrap standard errors"
+}
