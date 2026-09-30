@@ -65,6 +65,14 @@ def summarize_cell(rows, cfg, clip, sigma, index):
         scores = {method: np.asarray([r[method] for r in test]) for method in METHODS}
         boot = {method: np.asarray([auc(values[s], ty[s]) for s in samples])
                 for method, values in scores.items()}
+        def centered_ci(point, replicates, lower=None, upper=None):
+            # Paired resampling can shift the percentile distribution when
+            # the same H0/H1 seed contributes a positively correlated pair.
+            # Center a bootstrap-SE interval on the observed statistic.
+            half_width = 1.96 * float(np.std(replicates, ddof=1))
+            lo, hi = point-half_width, point+half_width
+            return (max(lower, lo) if lower is not None else lo,
+                    min(upper, hi) if upper is not None else hi)
         endpoint = "endpoint_logprob_difference"
         endpoint_auc = auc(scores[endpoint], ty)
         for method in METHODS:
@@ -83,14 +91,15 @@ def summarize_cell(rows, cfg, clip, sigma, index):
                 return max(0., math.log((lower-cfg["delta"])/upper)) if lower > cfg["delta"] else 0.
             observed_auc = auc(ts, ty)
             gain_distribution = boot[method] - boot[endpoint]
+            auc_low, auc_high = centered_ci(observed_auc, boot[method], 0., 1.)
+            gain_low, gain_high = centered_ci(observed_auc-endpoint_auc,
+                                              gain_distribution)
             result.append(dict(clip=clip, sigma=sigma, q=cfg["q"], steps=steps,
                 epsilon_upper_no_amplification=epsilon_upper(steps, sigma, cfg["delta"]),
                 method=method, auc=observed_auc,
-                auc_ci_low=float(np.quantile(boot[method], .025)),
-                auc_ci_high=float(np.quantile(boot[method], .975)),
+                auc_ci_low=auc_low, auc_ci_high=auc_high,
                 endpoint_auc=endpoint_auc, auc_gain_vs_endpoint=observed_auc-endpoint_auc,
-                gain_ci_low=float(np.quantile(gain_distribution, .025)),
-                gain_ci_high=float(np.quantile(gain_distribution, .975)),
+                gain_ci_low=gain_low, gain_ci_high=gain_high,
                 calibrated_holdout_tpr=tpr, calibrated_holdout_fpr=fpr,
                 true_positives=tp, false_positives=fp,
                 empirical_epsilon_lower_95_marginal=eps_lower(tpr_low,fpr_high),
@@ -216,6 +225,7 @@ def main():
         processed_conditions=len(conditions),
         configured_conditions=len(all_conditions),delta=cfg["delta"],
         elapsed_seconds=time.time()-started,torch=torch.__version__)
+    provenance["auc_interval"] = "paired-seed bootstrap standard-error normal 95% interval"
     (report / "provenance.json").write_text(json.dumps(provenance,indent=2))
     (output / "completion.json").write_text(json.dumps(provenance,indent=2))
     print(json.dumps(provenance,indent=2),flush=True)
