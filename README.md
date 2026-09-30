@@ -282,6 +282,24 @@ higher-utility rate gives 66% accuracy, trajectory AUC 0.818, and LiRA AUC
 fusion adds no clear signal. The apparent interface advantage therefore does
 not survive this stronger endpoint comparison in the useful-model condition.
 
+The [matched access-robustness experiment](reports/trajectory_access_robustness/README.md)
+holds a useful CNN and 80 unseen natural identities fixed while withholding
+releases, using stale fingerprints, or misspecifying the noise multiplier.
+The q-aware fingerprint score reaches AUC 0.763 with all releases, versus
+0.764 for an equal-access linear projection and 0.799 for a final-model
+LiRA-style control. Seeing only every sixteenth release lowers both
+trajectory scores to about 0.58. This operational test finds no distinct
+GAUSSPROOF score or fusion advantage.
+
+The [ordinary-rate matched-budget experiment](reports/ordinary_q_budget/README.md)
+extends a known natural record's eligibility from 128 to 512 DP-SGD steps at
+`q=0.004`, while doubling the noise multiplier from 4 to 8 so the conservative
+no-amplification privacy upper bound remains `epsilon <= 43.14`.
+Positive-run appearances rise from 0.46 to 2.24 on average, but the
+q-aware trajectory AUC moves only from 0.502 to 0.505; the paired gain
+interval includes zero. Model accuracy stays near 69%. Longer observation
+does not yield a useful attack under this matched conservative bound.
+
 The [real-canary gallery experiment](reports/canary_gallery/README.md) turns
 that high-noise evidence into record linkage across four private label
 distributions. At sigma 4 and 128 releases, exact top-1 recovery from a 32-image
