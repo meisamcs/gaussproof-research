@@ -1,5 +1,11 @@
 # Client-distribution and endpoint-baseline pilot
 
+> **Sampling caveat (2026-09-29):** These historical results used the first
+> 16 examples of each EMNIST writer. The archive's within-writer order makes
+> those prefixes heavily digit-0/1-biased, so these AUCs and model-utility
+> numbers should not be used as the current DP-FTRLM benchmark. See the
+> [corrected uniform-sampling, calibration-selected study](../dp_ftrl_calibrated_uniform/README.md).
+
 This report extends the [independent DP-FTRLM pilot](../../experiments/dp_ftrl_independent/README.md)
 with three client-data arrangements and final-checkpoint RMIA/LiRA baselines.
 It is **not** a run of the official TensorFlow Federated application. The
