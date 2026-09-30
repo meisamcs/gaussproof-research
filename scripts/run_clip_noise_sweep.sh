@@ -38,6 +38,7 @@ run_one clip_noise_low_epsilon_tail configs/clip_noise_low_epsilon_tail.json
 run_one clip_noise_weak_clipping_tail configs/clip_noise_weak_clipping_tail.json
 run_one clip_noise_utility_rescue_B32 configs/clip_noise_utility_rescue_B32.json
 run_one clip_noise_utility_rescue_B64 configs/clip_noise_utility_rescue_B64.json
+run_one clip_noise_utility_rescue_B128 configs/clip_noise_utility_rescue_B128.json
 
 "$python_bin" -m scripts.merge_clip_noise_sweep \
   --groups reports/clip_noise_sweep reports/clip_noise_sweep_C0p1 \
@@ -46,6 +47,7 @@ run_one clip_noise_utility_rescue_B64 configs/clip_noise_utility_rescue_B64.json
   --weak-clip reports/clip_noise_weak_clipping_tail \
   --utility-rescue reports/clip_noise_utility_rescue_B32 \
                    reports/clip_noise_utility_rescue_B64 \
+                   reports/clip_noise_utility_rescue_B128 \
   --output reports/clip_noise_sweep
 
 "$python_bin" -m scripts.compare_clip_noise_scores \
@@ -54,6 +56,7 @@ run_one clip_noise_utility_rescue_B64 configs/clip_noise_utility_rescue_B64.json
          runs/clip_noise_weak_clipping_tail \
          runs/clip_noise_utility_rescue_B32 \
          runs/clip_noise_utility_rescue_B64 \
+         runs/clip_noise_utility_rescue_B128 \
   --output reports/clip_noise_sweep/paired_differences.csv
 
 "$python_bin" -m scripts.plot_clip_noise_sweep \

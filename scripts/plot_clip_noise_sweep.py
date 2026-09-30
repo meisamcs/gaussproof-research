@@ -74,11 +74,12 @@ def tradeoff_figure(rows, report, steps, suffix=""):
              (clipped,"Fraction of batch gradients clipped","magma",0.,1.)]
     for ax,(array,title,cmap,lo,hi) in zip(axes,grids):
         im=ax.imshow(array,cmap=cmap,vmin=lo,vmax=hi,aspect="auto")
+        fmt = ".3f" if title.startswith("Trajectory") else ".2f"
         for i in range(len(clips)):
             for j in range(len(sigmas)):
                 red, green, blue, _ = im.cmap(im.norm(array[i,j]))
                 luminance = .2126*red + .7152*green + .0722*blue
-                ax.text(j,i,f"{array[i,j]:.2f}",ha="center",va="center",
+                ax.text(j,i,format(array[i,j],fmt),ha="center",va="center",
                         fontsize=8,color="black" if luminance>.5 else "white")
         ax.set_xticks(range(len(sigmas)),[f"{s:g}" for s in sigmas])
         ax.set_yticks(range(len(clips)),[f"{c:g}" for c in clips])
@@ -117,10 +118,10 @@ def low_epsilon_figure(rows, tail, report, steps):
 
 
 def utility_rescue_figure(rows, tail, rescue, report, steps):
-    fig, axes = plt.subplots(2, 2, figsize=(8.1, 5.7),
+    fig, axes = plt.subplots(2, 3, figsize=(11.7, 5.7),
                              gridspec_kw={"height_ratios": [1.6, 1]},
                              sharex="col")
-    for column, sigma in enumerate((32., 64.)):
+    for column, sigma in enumerate((32., 64., 128.)):
         baseline = [r for r in rows + tail if r["clip"] == 1. and
                     r["sigma"] == sigma and r["steps"] == steps]
         extra = [r for r in rescue if r["clip"] == 1. and
@@ -159,7 +160,7 @@ def utility_rescue_figure(rows, tail, rescue, report, steps):
         axes[1,column].grid(axis="y",alpha=.15)
     axes[0,0].set_ylabel("Held-out AUC")
     axes[1,0].set_ylabel("Public accuracy")
-    axes[0,1].legend(frameon=False,fontsize=7,loc="upper right")
+    axes[0,2].legend(frameon=False,fontsize=7,loc="upper right")
     fig.suptitle(f"Larger batches preserve CNN utility at T={steps}",fontsize=11)
     save(fig,report/f"utility_rescue_T{steps}")
 

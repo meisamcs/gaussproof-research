@@ -30,7 +30,7 @@ def main():
     parser.add_argument("--groups", nargs=3, required=True)
     parser.add_argument("--tail", required=True)
     parser.add_argument("--weak-clip", required=True)
-    parser.add_argument("--utility-rescue", nargs=2, required=True)
+    parser.add_argument("--utility-rescue", nargs="+", required=True)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     groups = [Path(v) for v in args.groups]
