@@ -14,8 +14,10 @@ pinned tree-noise implementation. The trajectory signal depends strongly on
 knowing the other batch records; this is a controlled audit, not a general
 attack on deployed federated DP-FTRL.
 
-**Federated client-distribution pilot:** [methods and validation](experiments/dp_ftrl_independent/DISTRIBUTIONS.md)
-and [three-seed results with RMIA/LiRA endpoints](reports/dp_ftrl_distributions/README.md)
+**Federated client-distribution pilot:** [corrected three-seed DP-FTRLM
+comparison with calibrated LiRA/RMIA](reports/dp_ftrl_calibrated_uniform/README.md).
+The [earlier distribution study](reports/dp_ftrl_distributions/README.md)
+used digit-skewed writer prefixes and is retained only as a historical audit.
 compare natural writer, IID-mixed, and label-sorted EMNIST clients. The
 source-aligned NumPy mechanism does not find a GAUSSPROOF advantage at high
 noise; the lower-noise stress condition is reported separately.
