@@ -272,6 +272,16 @@ effect depends on frequent participation: at the ordinary-sampling proxy
 `q=0.004`, where only 0.512 inclusions are expected in 128 rounds, neither
 interface provides detectable membership evidence.
 
+The [paired strong-endpoint replication](reports/trajectory_endpoint_replication/README.md)
+evaluates 80 new held-out identities against final-model LiRA and RMIA trained
+with 32 disjoint public OUT references. At the original learning rate, the
+q-aware trajectory beats the best calibrated endpoint by 0.117 AUC at
+`q=0.5,T=128`, but the model has only 24% public-query accuracy. An exploratory
+higher-utility rate gives 66% accuracy, trajectory AUC 0.818, and LiRA AUC
+0.830. Their paired difference interval includes zero, and trajectory--LiRA
+fusion adds no clear signal. The apparent interface advantage therefore does
+not survive this stronger endpoint comparison in the useful-model condition.
+
 The [real-canary gallery experiment](reports/canary_gallery/README.md) turns
 that high-noise evidence into record linkage across four private label
 distributions. At sigma 4 and 128 releases, exact top-1 recovery from a 32-image
@@ -282,6 +292,13 @@ fingerprint information. A background-mismatch control also shows that class
 distribution leakage can mimic reconstruction. The result is exact candidate
 re-identification; removing the true image does not establish unknown-image
 synthesis.
+
+The [30-identity gallery replication](reports/canary_gallery_replication/README.md)
+finds 13--15% exact top-1 recovery across four matched-background
+distributions, compared with 3.1% at random. Its wider identity coverage
+reduces the optimistic pilot estimate and confirms that a mismatched public
+background can expose a digit distribution without identifying an individual
+image.
 
 ## Learned-prior gradient and image reconstruction
 
