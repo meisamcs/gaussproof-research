@@ -16,11 +16,14 @@ attack on deployed federated DP-FTRL.
 
 **Federated client-distribution pilot:** [corrected three-seed DP-FTRLM
 comparison with calibrated LiRA/RMIA](reports/dp_ftrl_calibrated_uniform/README.md).
+The [paired LiRA/RMIA + GAUSSPROOF study](reports/dp_ftrl_hybrid_uniform/README.md)
+tests whether checkpoint trajectories add membership signal beyond final-model
+attacks in the same pilot.
 The [earlier distribution study](reports/dp_ftrl_distributions/README.md)
 used digit-skewed writer prefixes and is retained only as a historical audit.
-compare natural writer, IID-mixed, and label-sorted EMNIST clients. The
-source-aligned NumPy mechanism does not find a GAUSSPROOF advantage at high
-noise; the lower-noise stress condition is reported separately.
+These studies compare natural writer, IID-mixed, and label-sorted EMNIST
+clients. The source-aligned NumPy mechanism does not show an operational
+high-noise membership attack; the lower-noise stress condition is separate.
 
 **Status:** active research implementation. GAUSSPROOF includes a bounded nonnegative
 sparse trajectory decoder, exact known-fingerprint likelihood tests, learned temporal
