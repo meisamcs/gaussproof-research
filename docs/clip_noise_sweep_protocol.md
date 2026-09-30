@@ -71,7 +71,8 @@ correct-label log probability. The final-checkpoint control sees only the
 endpoint, not intermediate releases. It is **not** LiRA, which would require
 fresh matched OUT reference models for each grid cell.
 
-Every row reports tie-aware held-out AUC, a paired-seed bootstrap interval,
+Every row reports tie-aware held-out AUC, a 95% interval centered on the
+observed statistic using the paired-seed bootstrap standard error,
 TPR and FPR at the calibration threshold, public-query accuracy on 256
 separate MNIST records, actual batch clipping fraction, and positive-world
 appearances. A one-event empirical epsilon lower bound uses a conservative
