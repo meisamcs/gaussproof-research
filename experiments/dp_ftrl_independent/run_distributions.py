@@ -16,6 +16,7 @@ from pathlib import Path
 import numpy as np
 
 from calibrated_endpoint import apply_calibration, score_variants
+from hybrid_fusion import apply_hybrids
 from endpoint_baselines import (offline_lira_fixed_record_scores,
                                 offline_rmia_record_scores,
                                 pierre_offline_lira_cdf,
@@ -124,6 +125,8 @@ def run(args):
         raise ValueError("Invalid momentum or sparse-decoder parameters")
     if args.reference_models < 2:
         raise ValueError("Offline LiRA requires at least two OUT references")
+    if args.fuse_trajectory and not args.calibrate_endpoint:
+        raise ValueError("Trajectory fusion requires endpoint calibration")
     if args.reserve_utility_clients < 0:
         raise ValueError("Utility reservation must be nonnegative")
     source_path = Path(args.sqlite)
@@ -170,6 +173,9 @@ def run(args):
     if args.calibrate_endpoint:
         methods += ("lira_calibrated", "rmia_calibrated",
                     "endpoint_best_calibrated")
+    if args.fuse_trajectory:
+        methods += ("hybrid_equal_lira", "hybrid_calibrated_lira",
+                    "hybrid_equal_rmia", "hybrid_calibrated_rmia")
     # The first is the official repository's default offline a=1,gamma=2.
     # The second is the pre-existing GAUSSPROOF benchmark's fixed setting.
     rmia_variants = (("rmia_offline_a1_g2", 1., 2., True),
@@ -178,6 +184,7 @@ def run(args):
     table = []
     comparisons = []
     selections = []
+    fusion_selections = []
     distribution_purity = {}
     output.mkdir(parents=True, exist_ok=True)
     for mode_index, mode in enumerate(args.modes):
@@ -254,6 +261,10 @@ def run(args):
                 selections.extend(dict(distribution=mode, sigma=sigma, **row)
                                   for row in apply_calibration(
                                       records, args.calibration_identities))
+            if args.fuse_trajectory:
+                fusion_selections.extend(dict(distribution=mode, sigma=sigma,
+                                              **row) for row in apply_hybrids(
+                                                  records, args.calibration_identities))
             for method in methods:
                 interval = identity_interval(holdout, method, args.bootstrap,
                                              args.seed + 17)
@@ -304,6 +315,11 @@ def run(args):
                     for left in ("gaussproof_max", "gaussproof_mean")
                     for baseline in ("lira_calibrated", "rmia_calibrated",
                                      "endpoint_best_calibrated"))
+            if args.fuse_trajectory:
+                comparison_pairs += tuple(
+                    (f"hybrid_{kind}_{family}", f"{family}_calibrated")
+                    for family in ("lira", "rmia")
+                    for kind in ("equal", "calibrated"))
             for left, baseline in comparison_pairs:
                 diff = paired_difference_interval(
                     holdout, left, baseline, args.bootstrap,
@@ -319,6 +335,8 @@ def run(args):
     write_csv(output / "paired_comparisons.csv", comparisons)
     if args.calibrate_endpoint:
         write_csv(output / "calibration_selections.csv", selections)
+    if args.fuse_trajectory:
+        write_csv(output / "fusion_selections.csv", fusion_selections)
     digest = hashlib.sha256(source_path.read_bytes()).hexdigest()
     metadata = dict(
         status="source-aligned NumPy exploratory pilot; not official TFF driver",
@@ -337,6 +355,13 @@ def run(args):
             "This is a deliberately generous client-level adaptation, not "
             "an original-paper attack implementation."
             if args.calibrate_endpoint else None),
+        trajectory_fusion=(
+            "Calibrated endpoint and GAUSSPROOF mean scores are standardized "
+            "using calibration identities only. A 50:50 fusion is fixed. "
+            "A second fusion selects trajectory weight from "
+            "{0,.25,.5,.75,1} using calibration AUC only. Both are evaluated "
+            "on separate heldout identities."
+            if args.fuse_trajectory else None),
         candidate_class_purity=distribution_purity,
         reference_training=("Same fixed-slot DP-FTRLM recurrence; only public "
                             "clients; all candidate and population records OUT"),
@@ -448,6 +473,7 @@ def parser():
     p.add_argument("--bootstrap", type=int, default=400)
     p.add_argument("--seed", type=int, default=20260929)
     p.add_argument("--calibrate-endpoint", action="store_true")
+    p.add_argument("--fuse-trajectory", action="store_true")
     return p
 
 
