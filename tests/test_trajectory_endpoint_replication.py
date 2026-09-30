@@ -6,6 +6,7 @@ import torch
 from gaussproof.canary_audit import run_sequence
 from gaussproof.models import initialize
 from gaussproof.trajectory_endpoint_replication import public_roles
+from scripts.hybrid_trajectory_endpoint import analyze as analyze_hybrid
 from scripts.summarize_trajectory_endpoint_replication import summarize
 
 
@@ -72,6 +73,33 @@ class TrajectoryEndpointReplicationTests(unittest.TestCase):
         _, changed, _, _ = summarize(rows, spec)
         self.assertEqual(changed[0]["endpoint_lira_selected"],
                          selections[0]["endpoint_lira_selected"])
+
+    def test_hybrid_rmia_selection_ignores_holdout_scores(self):
+        rows = []
+        for digit in range(10):
+            for slot in range(2):
+                for label in (0, 1):
+                    rows.append(dict(q=.5, steps=2, canary=10 * digit + slot,
+                        digit=digit, label=label, appearances=label,
+                        trajectory_mixture=float(label),
+                        trajectory_raw_alignment=float(label),
+                        endpoint_lira_z=float(label),
+                        endpoint_rmia_a000_g100=float(label if slot == 0 else -label),
+                        endpoint_rmia_a100_g100=float(-label if slot == 0 else label)))
+        spec = dict(q_values=[.5], prefix_steps=[2], identities_per_class=2,
+                    calibration_per_class=1, bootstrap_repetitions=5,
+                    bootstrap_seed=1)
+        first = analyze_hybrid(rows, spec)
+        selected = [r["endpoint"] for r in first
+                    if r["endpoint"].startswith("endpoint_rmia_")]
+        self.assertEqual(selected, ["endpoint_rmia_a000_g100"] * 2)
+        for row in rows:
+            if row["canary"] % 10 == 1:
+                row["endpoint_rmia_a000_g100"], row["endpoint_rmia_a100_g100"] = (
+                    row["endpoint_rmia_a100_g100"], row["endpoint_rmia_a000_g100"])
+        changed = analyze_hybrid(rows, spec)
+        self.assertEqual([r["endpoint"] for r in changed
+                          if r["endpoint"].startswith("endpoint_rmia_")], selected)
 
 
 if __name__ == "__main__":
