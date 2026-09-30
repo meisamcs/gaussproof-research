@@ -1,0 +1,18 @@
+{
+  "seconds": 720.032702922821,
+  "data_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "source_checkpoint_sha256": "ec9d8673f8c4e3ffc9611c82afeb047a0bcb94aa8f24d1b7fa6746203d933edb",
+  "q_values": [
+    0.5,
+    0.1
+  ],
+  "prefixes": [
+    64,
+    128
+  ],
+  "identities": 100,
+  "reference_models": 32,
+  "public_reference_pool_disjoint_from_target_roles": true,
+  "positive_negative_runs_paired": true,
+  "torch": "2.5.1"
+}
