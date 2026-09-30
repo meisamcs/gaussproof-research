@@ -29,8 +29,9 @@ multipliers. Its initial public-gradient sample has no clipped records,
 whereas the `C=0.1` and `C=1` groups begin with nearly all records clipped.
 This control is analyzed separately from the main grid.
 Because very high noise can destroy the CNN before privacy is interpretable,
-two further controls use larger batches at the same `q=0.5`: `B=32,
-C=1, sigma=32` and `B=64, C=1, sigma=64`. This reduces the absolute
+three further controls use larger batches at the same `q=0.5`: `B=32,
+C=1, sigma=32`, `B=64, C=1, sigma=64`, and `B=128, C=1, sigma=128`.
+This reduces the absolute
 noise on the averaged update while also diluting the privileged record's
 contribution. The conservative record-level bound below is unchanged because
 both the sensitivity and Gaussian noise scale as `1/B`. These are utility
