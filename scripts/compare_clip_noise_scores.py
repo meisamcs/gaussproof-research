@@ -24,24 +24,33 @@ def load_run(path):
     expected = (len(cfg["clip_values"]) * len(cfg["sigmas"]) *
                 len(cfg["prefix_steps"]) * 2 *
                 (cfg["calibration_pairs"] + cfg["holdout_pairs"]))
-    processed_clips = json.loads((path / "completion.json").read_text()).get(
-        "processed_clip_values", cfg["clip_values"])
+    completion = json.loads((path / "completion.json").read_text())
+    processed_clips = completion.get("processed_clip_values", cfg["clip_values"])
     expected = int(expected * len(processed_clips) / len(cfg["clip_values"]))
     if len(rows) != expected:
         raise ValueError(f"Wrong number of score rows in {path}: {len(rows)} != {expected}")
-    return cfg, rows
+    return cfg, rows, completion
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", nargs="+", required=True)
     parser.add_argument("--output", required=True)
-    parser.add_argument("--bootstrap", type=int, default=1000)
+    parser.add_argument("--bootstrap", type=int, default=2000)
     args = parser.parse_args()
     data = {}
     holdout_count = None
+    reference = None
     for directory in args.runs:
-        cfg, rows = load_run(directory)
+        cfg, rows, completion = load_run(directory)
+        signature = (completion["dataset_sha256"],
+                     completion["source_checkpoint_sha256"],
+                     completion["dummy_index"], completion["target_index"],
+                     cfg["seed"], cfg["q"], cfg["learning_rate"])
+        if reference is None:
+            reference = signature
+        elif signature != reference:
+            raise ValueError(f"Paired runs have mismatched provenance: {directory}")
         if holdout_count is None:
             holdout_count = cfg["holdout_pairs"]
         elif cfg["holdout_pairs"] != holdout_count:
@@ -52,7 +61,10 @@ def main():
             key = (cfg["batch_size"], float(row["clip"]),
                    float(row["sigma"]), int(row["steps"]))
             observation = (int(row["pair"]), int(row["world"]))
-            data.setdefault(key, {})[observation] = row
+            bucket = data.setdefault(key, {})
+            if observation in bucket:
+                raise ValueError(f"Duplicate paired observation in {directory}: {key}")
+            bucket[observation] = row
     ordered = [(pair, world) for pair in range(holdout_count) for world in (0, 1)]
     labels = np.asarray([world for _, world in ordered], dtype=int)
     sample_rng = np.random.default_rng(20260930)
