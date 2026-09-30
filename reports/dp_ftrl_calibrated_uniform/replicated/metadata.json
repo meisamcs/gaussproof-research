@@ -1,0 +1,28 @@
+{
+  "status": "calibration-selected endpoint comparison on DP-FTRLM pilot",
+  "seeds": [
+    20261011,
+    20261013,
+    20261017
+  ],
+  "conditions": {
+    "low_noise": [
+      8,
+      0.25
+    ],
+    "high_noise": [
+      8,
+      4.0
+    ]
+  },
+  "modes": [
+    "natural_writer",
+    "iid_mixed",
+    "label_sorted"
+  ],
+  "federated_emnist_sha256": "0540b878da75b6a9a8c14fadae5c4b0a62cf12f8ff5fcf675b6f6c6c774df323",
+  "selection": "40 calibration identities per distribution/sigma; 80 independent holdout identities",
+  "endpoint_resources": "32 OUT DP-FTRLM references and 64 disjoint population clients",
+  "utility_tuning": "1124 writers used for a separate utility sweep are excluded from all benchmark roles",
+  "limits": "Source-aligned NumPy softmax-client pilot, not official TFF CNN. Seed ranges are not deployment-wide confidence intervals. One-time candidate participation; high-noise utility is low. Calibrated 5% thresholds may exceed 5% FPR on holdout."
+}
