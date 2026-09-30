@@ -194,7 +194,16 @@ def sparse_coordinate(bank: np.ndarray, observation: np.ndarray,
 def simulate(data, candidate_id, background_ids, public_ids, validation,
              *, member, rounds, position, clients_per_round, sigma, clip,
              client_lr, server_lr, momentum, seed, matrix, penalty,
-             sparse_iterations, capture_final=False):
+             sparse_iterations, capture_final=False,
+             participation_rounds=None, replace_background=False):
+    if participation_rounds is None:
+        participation_rounds = (position,)
+    participation_rounds = frozenset(participation_rounds)
+    if any(t < 0 or t >= rounds for t in participation_rounds):
+        raise ValueError("Participation round outside the training trajectory")
+    expected_width = clients_per_round if replace_background else clients_per_round - 1
+    if np.shape(background_ids) != (rounds, expected_width):
+        raise ValueError("Background schedule has the wrong number of slots")
     dim = 50 * 10
     weights = np.zeros((10, 50), np.float64)
     initial = weights.copy()
@@ -215,10 +224,10 @@ def simulate(data, candidate_id, background_ids, public_ids, validation,
     oracle_prefix = []
     rero = []
     sparse = []
-    late = []
     noise_prefix = []
     candidate_norms = []
     candidate_fingerprints = []
+    replacement_fingerprints = []
     public_prefixes = []
     insertion_count = 0
     for t in range(rounds):
@@ -229,13 +238,17 @@ def simulate(data, candidate_id, background_ids, public_ids, validation,
             -clipped_client_delta(weights, item, client_lr, clip)
             / clients_per_round for item in public
         ])
-        known = np.zeros_like(weights)
-        for client_id in background_ids[t]:
-            known -= clipped_client_delta(weights, data.get(client_id),
-                                          client_lr, clip) / clients_per_round
-        if member and t == position:
+        background_grads = [
+            -clipped_client_delta(weights, data.get(client_id),
+                                  client_lr, clip) / clients_per_round
+            for client_id in background_ids[t]
+        ]
+        known = np.sum(background_grads, axis=0)
+        replacement = background_grads[-1] if replace_background else np.zeros_like(weights)
+        replacement_fingerprints.append(replacement.reshape(-1).copy())
+        if member and t in participation_rounds:
             insertion_count += 1
-            grad = known + candidate_grad
+            grad = known + candidate_grad - replacement
         else:
             grad = known
         cumulative_grad += grad
@@ -250,15 +263,14 @@ def simulate(data, candidate_id, background_ids, public_ids, validation,
         if not np.allclose(recovered_prefix, cumulative_grad - sampled_noise,
                            atol=1e-10):
             raise AssertionError("Momentum inversion failed")
-        late.append(weights.copy())
         release = recovered_prefix - previous_observed
         previous_observed = recovered_prefix
         noise_prefix.append(sampled_noise.copy())  # validation only
         if not np.allclose(release, grad - (sampled_noise - previous_noise)):
             raise AssertionError("Tree release mismatch")
         previous_noise = sampled_noise
-        # Public-only background estimate: expected seven ordinary clients.
-        expected = (clients_per_round - 1) * public_grads.mean(axis=0)
+        # Public-only estimate of the ordinary clients occupying active slots.
+        expected = expected_width * public_grads.mean(axis=0)
         cumulative_public += expected
         residual = release - expected
         public_prefixes.append((recovered_prefix - cumulative_public)
@@ -274,10 +286,8 @@ def simulate(data, candidate_id, background_ids, public_ids, validation,
                                         penalty, sparse_iterations))
         projection.append(float(np.sum(candidate_grad * residual)))
         oracle_prefix.append((recovered_prefix - cumulative_background).copy())
-    if insertion_count != int(member):
+    if insertion_count != (len(participation_rounds) if member else 0):
         raise AssertionError("Candidate inserted wrong number of times")
-    shifted = np.zeros(rounds)
-    shifted[position:] = 1
     covariance = matrix @ matrix.T
     shifts = np.tri(rounds, dtype=np.float64)
     gls_weights = np.linalg.solve(covariance, shifts)
@@ -289,15 +299,16 @@ def simulate(data, candidate_id, background_ids, public_ids, validation,
     public_gls = ((projected_public - .5 * shift_energy
                    * np.sum(fingerprints * fingerprints, axis=1))
                   / (node_std * node_std))
-    # Informed, known-round Gaussian reference; its background is private.
-    h = -clipped_client_delta(
-        late[position - 1] if position else initial, candidate,
-        client_lr, clip) / clients_per_round
-    hflat = h.reshape(-1)
-    projected = np.asarray([np.sum(hflat * r.reshape(-1)) for r in oracle_prefix])
-    solve = np.linalg.solve(covariance, shifted)
-    informed = float((solve @ projected - .5 * (shifted @ solve)
-                      * (hflat @ hflat)) / (node_std * node_std))
+    # Diagnostic only: it knows the private background and all participating
+    # rounds. Under replacement, the shift is candidate minus replaced client.
+    shifts_by_round = np.stack(candidate_fingerprints) - np.stack(replacement_fingerprints)
+    mask = np.asarray([t in participation_rounds for t in range(rounds)])
+    cumulative_shift = np.cumsum(mask[:, None] * shifts_by_round, axis=0)
+    oracle_rows = np.stack(oracle_prefix).reshape(rounds, -1)
+    whitened = np.linalg.solve(covariance, cumulative_shift)
+    informed = float((np.sum(whitened * oracle_rows)
+                      - .5 * np.sum(whitened * cumulative_shift))
+                     / (node_std * node_std))
     result = {
         "rero_max": float(max(rero)),
         "rero_mean": float(np.mean(rero)),

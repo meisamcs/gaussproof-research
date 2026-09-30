@@ -43,12 +43,14 @@ def train_out_reference(data, schedule, *, sigma: float, clip: float,
                         clients_per_round: int, seed: int) -> np.ndarray:
     """Train an OUT model with the same fixed-slot DP-FTRLM server recurrence.
 
-    The scheduled clients fill B-1 slots, leaving one zero slot, exactly as
-    in the target's absence world. The caller must use a public pool disjoint
-    from candidate and RMIA population examples.
+    The schedule has either B-1 clients with one zero slot (one-shot
+    add/remove experiment) or B clients (repeated-client replace-one
+    experiment). The caller must use a public pool disjoint from candidate
+    and RMIA population examples.
     """
-    if schedule.ndim != 2 or schedule.shape[1] != clients_per_round - 1:
-        raise ValueError("Expected one empty client slot in every round")
+    if schedule.ndim != 2 or schedule.shape[1] not in (
+            clients_per_round - 1, clients_per_round):
+        raise ValueError("Expected B-1 or B scheduled clients per round")
     if sigma <= 0 or clip <= 0 or clients_per_round < 2:
         raise ValueError("Invalid mechanism parameters")
     initial = np.zeros((10, 50), np.float64)

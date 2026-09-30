@@ -36,6 +36,29 @@ class MaterializedData:
         return self.items[client_id]
 
 
+def replacement_schedule(cohort, rounds, clients_per_round, rng):
+    """Sample a B-of-N cohort every round, marking the replace-one slot.
+
+    The last member of the cohort is the H0-only client. Under H1, the known
+    candidate replaces that client whenever selected. Both worlds therefore
+    have exactly B clients every round, with participation q=B/N.
+    """
+    cohort = np.asarray(cohort, dtype=object)
+    if len(cohort) < clients_per_round:
+        raise ValueError("The cohort must have at least B clients")
+    special = cohort[-1]
+    schedule = []
+    selected = []
+    for t in range(rounds):
+        row = cohort[rng.choice(len(cohort), clients_per_round,
+                                replace=False)]
+        if special in row:
+            row = np.concatenate((row[row != special], [special]))
+            selected.append(t)
+        schedule.append(row)
+    return np.stack(schedule), tuple(selected)
+
+
 def materialize_distribution(source, partitions, mode, examples, seed):
     """Make record-disjoint natural, IID-mixed, or label-sorted client bags.
 
@@ -109,7 +132,19 @@ def run(args):
         raise ValueError("Invalid round count or insertion position")
     if args.clients_per_round < 2 or args.public_bank < 1:
         raise ValueError("Invalid client slots or public bank")
-    needed_public = args.rounds * (args.clients_per_round - 1)
+    if args.participation_q is None:
+        cohort_size = None
+        needed_public = args.rounds * (args.clients_per_round - 1)
+    else:
+        if not 0 < args.participation_q <= 1:
+            raise ValueError("Require 0 < participation q <= 1")
+        cohort_size = round(args.clients_per_round / args.participation_q)
+        if not np.isclose(args.clients_per_round / cohort_size,
+                          args.participation_q):
+            raise ValueError("Choose q=B/N for an integer cohort size N")
+        needed_public = cohort_size
+        if args.background_pool < cohort_size:
+            raise ValueError("Background pool is smaller than the cohort")
     if args.public_pool < needed_public or args.public_bank > args.public_pool:
         raise ValueError(f"Public pool must have at least {needed_public} clients")
     if min(args.calibration_identities, args.holdout_identities,
@@ -185,6 +220,7 @@ def run(args):
     comparisons = []
     selections = []
     fusion_selections = []
+    participation_counts = []
     distribution_purity = {}
     output.mkdir(parents=True, exist_ok=True)
     for mode_index, mode in enumerate(args.modes):
@@ -196,8 +232,13 @@ def run(args):
             references = []
             for index in range(args.reference_models):
                 rng = np.random.default_rng(args.seed + 1009 * (index + 1))
-                schedule = rng.choice(public_ids, needed_public, replace=False)
-                schedule = schedule.reshape(args.rounds, -1)
+                if cohort_size is None:
+                    schedule = rng.choice(public_ids, needed_public,
+                                          replace=False).reshape(args.rounds, -1)
+                else:
+                    cohort = rng.choice(public_ids, cohort_size, replace=False)
+                    schedule, _ = replacement_schedule(
+                        cohort, args.rounds, args.clients_per_round, rng)
                 references.append(train_out_reference(
                     data, schedule, sigma=sigma, clip=args.clip,
                     client_lr=args.client_lr, server_lr=args.server_lr,
@@ -224,8 +265,18 @@ def run(args):
             records = []
             for index, candidate_id in enumerate(candidate_ids):
                 bg_rng = np.random.default_rng(args.seed + 7919 * (index + 1))
-                background = bg_rng.choice(background_ids, needed_public,
-                                           replace=False).reshape(args.rounds, -1)
+                if cohort_size is None:
+                    background = bg_rng.choice(background_ids, needed_public,
+                                               replace=False).reshape(args.rounds, -1)
+                    selected = None
+                else:
+                    cohort = bg_rng.choice(background_ids, cohort_size,
+                                           replace=False)
+                    background, selected = replacement_schedule(
+                        cohort, args.rounds, args.clients_per_round, bg_rng)
+                    participation_counts.append(dict(
+                        distribution=mode, sigma=sigma, client_index=index,
+                        count=len(selected)))
                 settings = dict(rounds=args.rounds, position=args.position,
                                 clients_per_round=args.clients_per_round,
                                 sigma=sigma, clip=args.clip,
@@ -235,7 +286,9 @@ def run(args):
                                 seed=args.seed + 100003 * (index + 1),
                                 matrix=matrix, penalty=args.penalty,
                                 sparse_iterations=args.iterations,
-                                capture_final=True)
+                                capture_final=True,
+                                participation_rounds=selected,
+                                replace_background=cohort_size is not None)
                 world = {}
                 for member, name in ((False, "negative"), (True, "positive")):
                     result = simulate(data, candidate_id, background,
@@ -290,9 +343,17 @@ def run(args):
                     population_records=len(reference_population[0]),
                     reference_models=len(references),
                     mean_client_class_purity=purity["candidate"],
-                    rounds=args.rounds, participation_round=args.position + 1,
-                    conservative_one_pass_epsilon_upper=epsilon_upper(
-                        args.rounds, sigma, args.delta), delta=args.delta,
+                    rounds=args.rounds,
+                    participation_round=(args.position + 1
+                                         if cohort_size is None else None),
+                    participation_probability=(args.participation_q
+                                               if cohort_size else None),
+                    expected_participations=(args.rounds * args.participation_q
+                                             if cohort_size else 1),
+                    conservative_one_pass_epsilon_upper=(epsilon_upper(
+                        args.rounds, sigma, args.delta)
+                        if cohort_size is None else float("nan")),
+                    delta=args.delta,
                 ))
             comparison_pairs = (
                 ("gaussproof_mean", "rero_mean"),
@@ -337,6 +398,8 @@ def run(args):
         write_csv(output / "calibration_selections.csv", selections)
     if args.fuse_trajectory:
         write_csv(output / "fusion_selections.csv", fusion_selections)
+    if cohort_size is not None:
+        write_csv(output / "participation_counts.csv", participation_counts)
     digest = hashlib.sha256(source_path.read_bytes()).hexdigest()
     metadata = dict(
         status="source-aligned NumPy exploratory pilot; not official TFF driver",
@@ -347,6 +410,17 @@ def run(args):
         utility_tuning_writers_reserved=args.reserve_utility_clients,
         utility_tuning_writers_disjoint=True,
         eligible_writers_after_reservation=eligible_count,
+        participation_design=(
+            "One fixed insertion with one empty slot under H0"
+            if cohort_size is None else
+            "Each round samples B clients without replacement from N=B/q. "
+            "H1 replaces one H0 cohort client with the candidate. Both worlds "
+            "have B clients every round; the same schedule and tree-noise draws "
+            "are paired. q is the candidate's per-round sampling probability. "
+            "The one-pass epsilon bound does not apply to repeated participation. "
+            "Replace-one sensitivity is at most 2C/B while node noise "
+            "standard deviation is sigma*C/B."),
+        cohort_size=cohort_size,
         endpoint_calibration=(
             "Calibration identities alone select LiRA/RMIA score variant, "
             "mean/max record aggregation, and orientation separately for each "
@@ -448,6 +522,9 @@ def parser():
         "natural_writer", "iid_mixed", "label_sorted"])
     p.add_argument("--rounds", type=int, default=32)
     p.add_argument("--position", type=int, default=16)
+    p.add_argument("--participation-q", type=float, default=None,
+                   help="B/N replacement-client sampling rate per round; "
+                        "omission runs the legacy one-insertion control")
     p.add_argument("--clients-per-round", type=int, default=8)
     p.add_argument("--calibration-identities", type=int, default=40)
     p.add_argument("--holdout-identities", type=int, default=80)
