@@ -1,5 +1,10 @@
 # Independent federated DP-FTRLM checkpoint pilot
 
+> **Historical protocol:** The original experiments below used each writer's
+> first 16 records, a strongly digit-0/1-biased prefix in the EMNIST archive.
+> For the corrected uniform-sampling benchmark and calibrated endpoint
+> attacks, use the [new report](../../reports/dp_ftrl_calibrated_uniform/README.md).
+
 The [distribution and endpoint-baseline extension](DISTRIBUTIONS.md) adds
 three client-data arrangements, independently repeated target-training seeds,
 and original-paper RMIA/LiRA plus the pinned Pierre-Joly scoring variants.

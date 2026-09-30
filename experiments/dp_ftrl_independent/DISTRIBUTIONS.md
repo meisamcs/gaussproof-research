@@ -1,5 +1,12 @@
 # Distribution and endpoint-baseline extension
 
+> **Historical protocol:** The runs reproduced below used the first 16
+> records of each writer, which are digit-0/1-biased in this archive. Treat
+> their AUCs as diagnostic only. The
+> [corrected study](../../reports/dp_ftrl_calibrated_uniform/README.md)
+> samples records uniformly within writers and calibrates offline LiRA/RMIA
+> on separate identities.
+
 This is a controlled, source-aligned NumPy DP-FTRLM **pilot**, not the authors'
 TensorFlow Federated application. It evaluates whether known-client membership
 signal survives changes to the client data distribution and whether a trajectory

@@ -37,11 +37,18 @@ def array_extension(code: int, data: bytes):
 
 
 class ClientData:
-    def __init__(self, path: Path, examples: int):
+    def __init__(self, path: Path, examples: int, selection: str = "first",
+                 sample_seed: int = 0, pixel_transform: str = "raw"):
+        if (selection not in {"first", "uniform"} or examples < 1
+                or pixel_transform not in {"raw", "ink"}):
+            raise ValueError("Invalid per-writer example selection")
         self.connection = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
         self.ids = [row[0] for row in self.connection.execute(
             "SELECT client_id FROM federated_data ORDER BY client_id")]
         self.examples = examples
+        self.selection = selection
+        self.sample_seed = sample_seed
+        self.pixel_transform = pixel_transform
         self.cache = {}
 
     def get(self, client_id: bytes):
@@ -54,10 +61,24 @@ class ClientData:
                                    ext_hook=array_extension)
             if len(item["label"]) != size:
                 raise AssertionError("Client length mismatch")
-            # One local SGD step on a deterministic subset of this real writer.
-            image = np.asarray(item["pixels"][:self.examples], np.float32)
-            labels = np.asarray(item["label"][:self.examples], np.int64)
+            # The archive's original order is strongly label-skewed near the
+            # front. Uniform mode samples each writer without replacement,
+            # using a stable writer-derived seed independent of access order.
+            if self.selection == "uniform":
+                writer_bytes = (client_id if isinstance(client_id, bytes)
+                                else str(client_id).encode())
+                digest = hashlib.sha256(
+                    str(self.sample_seed).encode() + b":" + writer_bytes).digest()
+                rng = np.random.default_rng(int.from_bytes(digest[:8], "little"))
+                indices = rng.choice(size, min(size, self.examples),
+                                     replace=False)
+            else:
+                indices = np.arange(min(size, self.examples))
+            image = np.asarray(item["pixels"][indices], np.float32)
+            labels = np.asarray(item["label"][indices], np.int64)
             image = image.reshape(-1, 7, 4, 7, 4).mean(axis=(2, 4))
+            if self.pixel_transform == "ink":
+                image = 1.0 - image
             x = np.concatenate((image.reshape(len(image), -1),
                                 np.ones((len(image), 1), np.float32)), axis=1)
             if len(x) == 0 or not np.isfinite(x).all():

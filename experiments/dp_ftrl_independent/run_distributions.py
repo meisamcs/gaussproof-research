@@ -15,6 +15,7 @@ from pathlib import Path
 
 import numpy as np
 
+from calibrated_endpoint import apply_calibration, score_variants
 from endpoint_baselines import (offline_lira_fixed_record_scores,
                                 offline_rmia_record_scores,
                                 pierre_offline_lira_cdf,
@@ -79,18 +80,23 @@ def materialize_distribution(source, partitions, mode, examples, seed):
 
 def score_endpoint(weights, candidate, population, ref_candidate,
                    ref_candidate_logits, ref_population, lira_std,
-                   rmia_variants):
+                   rmia_variants, calibrate_endpoint=False):
     x = true_label_probabilities(weights, candidate)
+    raw = true_label_logits(weights, candidate)
     z = np.concatenate([true_label_probabilities(weights, item)
                         for item in population])
     results = {"lira_offline_fixed": float(np.mean(
         offline_lira_fixed_record_scores(x, ref_candidate, lira_std))),
         "pierre_lira_cdf": float(np.mean(pierre_offline_lira_cdf(
-            true_label_logits(weights, candidate), ref_candidate_logits)))}
+            raw, ref_candidate_logits)))}
     for name, a, gamma, population_correction in rmia_variants:
         results[name] = float(np.mean(offline_rmia_record_scores(
             x, ref_candidate, z, ref_population, a=a, gamma=gamma,
             population_correction=population_correction)))
+    if calibrate_endpoint:
+        results.update(score_variants(x, raw, ref_candidate,
+                                      ref_candidate_logits, z,
+                                      ref_population, lira_std))
     return results
 
 
@@ -118,17 +124,38 @@ def run(args):
         raise ValueError("Invalid momentum or sparse-decoder parameters")
     if args.reference_models < 2:
         raise ValueError("Offline LiRA requires at least two OUT references")
+    if args.reserve_utility_clients < 0:
+        raise ValueError("Utility reservation must be nonnegative")
     source_path = Path(args.sqlite)
     if not source_path.is_file():
         raise FileNotFoundError(f"Download {DATA_URL} to {source_path}")
-    source = ClientData(source_path, args.examples)
+    source = ClientData(source_path, args.examples,
+                        selection=args.client_example_selection,
+                        sample_seed=args.seed,
+                        pixel_transform=args.pixel_transform)
     count = args.calibration_identities + args.holdout_identities
     required = (count + args.public_pool + args.population_clients
                 + args.background_pool)
-    if required > len(source.ids):
-        raise ValueError(f"Need {required} disjoint client identities; have {len(source.ids)}")
-    ids = np.asarray(source.ids, dtype=object)
+    all_ids = np.asarray(source.ids, dtype=object)
+    ids = np.asarray([client_id for client_id, size in
+                      source.connection.execute(
+                          "SELECT client_id,num_examples FROM federated_data "
+                          "ORDER BY client_id") if size >= args.examples],
+                     dtype=object)
+    utility_ids = set()
+    if args.reserve_utility_clients:
+        utility_ids = set(all_ids[np.random.default_rng(args.utility_seed)
+                                  .permutation(len(all_ids))
+                                  [:args.reserve_utility_clients]])
+        ids = np.asarray([client_id for client_id in ids
+                          if client_id not in utility_ids], dtype=object)
+    if required > len(ids):
+        raise ValueError(f"Need {required} eligible clients after utility "
+                         f"reservation; have {len(ids)}")
+    eligible_count = len(ids)
     ids = ids[np.random.default_rng(args.seed).permutation(len(ids))][:required]
+    if utility_ids.intersection(ids):
+        raise AssertionError("Utility-tuning writer entered the audit")
     cuts = np.cumsum([count, args.public_pool,
                       args.population_clients, args.background_pool])
     candidate_ids, public_ids, population_ids, background_ids = np.split(ids, cuts[:-1])
@@ -140,6 +167,9 @@ def run(args):
                "informed_llr", "lira_offline_fixed",
                "rmia_offline_a1_g2", "rmia_offline_a05_g1",
                "pierre_lira_cdf", "pierre_rmia_a05_g1")
+    if args.calibrate_endpoint:
+        methods += ("lira_calibrated", "rmia_calibrated",
+                    "endpoint_best_calibrated")
     # The first is the official repository's default offline a=1,gamma=2.
     # The second is the pre-existing GAUSSPROOF benchmark's fixed setting.
     rmia_variants = (("rmia_offline_a1_g2", 1., 2., True),
@@ -147,6 +177,7 @@ def run(args):
                      ("pierre_rmia_a05_g1", .5, 1., False))
     table = []
     comparisons = []
+    selections = []
     distribution_purity = {}
     output.mkdir(parents=True, exist_ok=True)
     for mode_index, mode in enumerate(args.modes):
@@ -208,7 +239,8 @@ def run(args):
                         final, data.get(candidate_id), population,
                         reference_candidates[candidate_id],
                         reference_candidate_logits[candidate_id],
-                        reference_population, lira_std, rmia_variants))
+                        reference_population, lira_std, rmia_variants,
+                        calibrate_endpoint=args.calibrate_endpoint))
                     world[name] = result
                 if abs(world["positive"]["noise_check"]
                        - world["negative"]["noise_check"]) > 1e-10:
@@ -218,6 +250,10 @@ def run(args):
                       flush=True)
             calibration = records[:args.calibration_identities]
             holdout = records[args.calibration_identities:]
+            if args.calibrate_endpoint:
+                selections.extend(dict(distribution=mode, sigma=sigma, **row)
+                                  for row in apply_calibration(
+                                      records, args.calibration_identities))
             for method in methods:
                 interval = identity_interval(holdout, method, args.bootstrap,
                                              args.seed + 17)
@@ -247,7 +283,7 @@ def run(args):
                     conservative_one_pass_epsilon_upper=epsilon_upper(
                         args.rounds, sigma, args.delta), delta=args.delta,
                 ))
-            for left, baseline in (
+            comparison_pairs = (
                 ("gaussproof_mean", "rero_mean"),
                 ("gaussproof_mean", "endpoint_loss"),
                 ("gaussproof_mean", "lira_offline_fixed"),
@@ -261,7 +297,14 @@ def run(args):
                 ("gaussproof_max", "rmia_offline_a1_g2"),
                 ("gaussproof_max", "rmia_offline_a05_g1"),
                 ("gaussproof_max", "pierre_lira_cdf"),
-                ("gaussproof_max", "pierre_rmia_a05_g1")):
+                ("gaussproof_max", "pierre_rmia_a05_g1"))
+            if args.calibrate_endpoint:
+                comparison_pairs += tuple(
+                    (left, baseline)
+                    for left in ("gaussproof_max", "gaussproof_mean")
+                    for baseline in ("lira_calibrated", "rmia_calibrated",
+                                     "endpoint_best_calibrated"))
+            for left, baseline in comparison_pairs:
                 diff = paired_difference_interval(
                     holdout, left, baseline, args.bootstrap,
                     args.seed + 29)
@@ -274,6 +317,8 @@ def run(args):
                     holdout_clients=len(holdout)))
     write_csv(output / "summary.csv", table)
     write_csv(output / "paired_comparisons.csv", comparisons)
+    if args.calibrate_endpoint:
+        write_csv(output / "calibration_selections.csv", selections)
     digest = hashlib.sha256(source_path.read_bytes()).hexdigest()
     metadata = dict(
         status="source-aligned NumPy exploratory pilot; not official TFF driver",
@@ -281,6 +326,17 @@ def run(args):
         dataset_url=DATA_URL, parameters=vars(args),
         role_counts={name: len(ids) for name, ids in partitions.items()},
         role_partitions_disjoint=True,
+        utility_tuning_writers_reserved=args.reserve_utility_clients,
+        utility_tuning_writers_disjoint=True,
+        eligible_writers_after_reservation=eligible_count,
+        endpoint_calibration=(
+            "Calibration identities alone select LiRA/RMIA score variant, "
+            "mean/max record aggregation, and orientation separately for each "
+            "distribution and sigma; holdout identities select nothing. "
+            "The endpoint_best family may also select final-model loss. "
+            "This is a deliberately generous client-level adaptation, not "
+            "an original-paper attack implementation."
+            if args.calibrate_endpoint else None),
         candidate_class_purity=distribution_purity,
         reference_training=("Same fixed-slot DP-FTRLM recurrence; only public "
                             "clients; all candidate and population records OUT"),
@@ -376,6 +432,11 @@ def parser():
     p.add_argument("--background-pool", type=int, default=500)
     p.add_argument("--reference-models", type=int, default=8)
     p.add_argument("--examples", type=int, default=16)
+    p.add_argument("--client-example-selection", choices=("first", "uniform"),
+                   default="first")
+    p.add_argument("--pixel-transform", choices=("raw", "ink"), default="raw")
+    p.add_argument("--reserve-utility-clients", type=int, default=0)
+    p.add_argument("--utility-seed", type=int, default=20260929)
     p.add_argument("--sigma", nargs="+", type=float, default=[1., 4.])
     p.add_argument("--delta", type=float, default=1e-5)
     p.add_argument("--clip", type=float, default=.25)
@@ -386,6 +447,7 @@ def parser():
     p.add_argument("--iterations", type=int, default=40)
     p.add_argument("--bootstrap", type=int, default=400)
     p.add_argument("--seed", type=int, default=20260929)
+    p.add_argument("--calibrate-endpoint", action="store_true")
     return p
 
 
