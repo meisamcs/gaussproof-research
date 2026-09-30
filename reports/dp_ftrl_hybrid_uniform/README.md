@@ -1,4 +1,8 @@
-# LiRA and RMIA with and without GAUSSPROOF
+# One-participation LiRA/RMIA and GAUSSPROOF control
+
+This client is inserted once in 64 rounds. The
+[repeated-client q sweep](../dp_ftrl_repeated_q/README.md) is the experiment
+that tests the large-participation, repeated-fingerprint hypothesis.
 
 **Result.** Combining the public GAUSSPROOF trajectory score with either
 calibrated endpoint LiRA or RMIA produces small AUC gains in this controlled
@@ -83,7 +87,7 @@ The high-noise endpoint scores are near .5 and adding GP changes AUC by
 thousandths. A positive difference over a near-chance baseline should not be
 described as a successful attack. Some individual identity-bootstrap gain
 intervals include zero; three target seeds are too few to claim a general
-improvement. The per-seed [summary files](seed_20261011/summary.csv) include
+improvement. The per-seed [aggregate table](replicated/seed_auc.csv) includes
 TPR at calibration-selected 1% and 5% FPR thresholds **and the achieved
 held-out FPR**. With just 40 calibration negatives, 1% FPR cannot be resolved
 and even the nominal 5% threshold often exceeds 5% on held-out identities.
