@@ -5,6 +5,7 @@ import numpy as np
 import torch
 
 from gaussproof.fixed_pair_audit import fixed_world, one_sided_limits
+from gaussproof.clip_noise_sweep import epsilon_upper
 from gaussproof.models import initialize
 from scripts.low_fpr_lira_fusion import analyze
 
@@ -46,6 +47,22 @@ class IntegrationProtocolTests(unittest.TestCase):
         lower, upper = one_sided_limits(0, 80, .025)
         self.assertEqual(lower, 0.)
         self.assertGreater(upper, 0.)
+
+    def test_prefixes_reuse_one_trajectory_and_noise_reduces_upper_bound(self):
+        torch.set_num_threads(1)
+        x = torch.rand(7, 1, 28, 28, generator=torch.Generator().manual_seed(3))
+        y = torch.arange(7) % 10
+        initial = initialize(13).state_dict()
+        cfg = dict(source_seed=13, q=0., batch_size=2, clip=.1, sigma=4.,
+                   steps=2, prefix_steps=[1,2], learning_rate=.01)
+        args = (initial,x,y,np.array([2,3,4]),np.array([0,1]),6,5)
+        h0 = fixed_world(*args,0,cfg,49,utility_indices=np.array([0,1]))
+        h1 = fixed_world(*args,1,cfg,49,utility_indices=np.array([0,1]))
+        self.assertEqual(h0,h1)
+        self.assertEqual(set(h0),{1,2})
+        self.assertEqual(h0[2]["trajectory_mixture"],0.)
+        self.assertGreater(epsilon_upper(128,2.,1e-5),
+                           epsilon_upper(128,4.,1e-5))
 
 
 if __name__ == "__main__":
