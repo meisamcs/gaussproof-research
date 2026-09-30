@@ -171,6 +171,8 @@ def main():
         clip_group_reports=[str(p) for p in groups],tail_report=str(tail_dir),
         weak_clipping_report=str(weak_dir),
         utility_rescue_reports=args.utility_rescue)
+    provenance["auc_interval"] = "observed AUC +/- 1.96 paired-bootstrap standard errors"
+    provenance["gain_interval"] = "observed AUC gap +/- 1.96 paired-bootstrap standard errors"
     (output/"provenance.json").write_text(json.dumps(provenance,indent=2))
     (output/"progress.json").write_text(json.dumps(dict(
         completed_conditions=provenance["grid_conditions"]+provenance["tail_conditions"]+

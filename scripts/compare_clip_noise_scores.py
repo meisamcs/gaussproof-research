@@ -1,8 +1,9 @@
 """Paired comparisons across attacks, noise levels, and utility-rescue batches.
 
 Reads private per-trial scores from ignored run directories and exports only
-aggregate differences. Intervals are descriptive 95% paired-seed bootstrap
-intervals; the grid contains many comparisons, so they are not adjusted
+aggregate differences. Intervals use 1.96 paired-bootstrap standard errors
+centered on observed differences; the grid contains many comparisons, so
+they are not adjusted
 familywise or suitable for selecting a favorable cell after the fact.
 """
 import argparse
@@ -87,7 +88,8 @@ def main():
         observed = auc(left, labels) - auc(right, labels)
         boot = np.asarray([auc(left[idx], labels[idx]) -
                            auc(right[idx], labels[idx]) for idx in indices])
-        low, high = np.quantile(boot, [.025, .975])
+        half_width = 1.96 * float(np.std(boot, ddof=1))
+        low, high = observed-half_width, observed+half_width
         comparisons.append(dict(comparison=kind,
             clip=left_key[1], sigma=left_key[2], other_sigma=right_key[2],
             batch_size=left_key[0], other_batch_size=right_key[0],
