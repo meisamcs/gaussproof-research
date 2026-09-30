@@ -355,16 +355,18 @@ At the exploratory lower learning rate, accuracy reaches 66.2\%. The trajectory 
 \caption{Stronger final-model comparison at 128 releases, with 20 calibration and 80 evaluation identities per condition. The final column is the q-aware trajectory minus the strongest endpoint attack selected on calibration identities; intervals resample evaluation identities.}
 \label{tab:strong-endpoint}
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{cccccccc}
 \toprule
 $\eta$ & $q$ & Public accuracy & Trajectory & Raw alignment & LiRA & RMIA & Gain [95\% interval] \\
 \midrule
-0.05 & 0.5 & 0.244 & 0.810 & 0.784 & 0.693 & 0.667 & $+0.117\ [0.070,0.170]$ \\
-0.05 & 0.1 & 0.243 & 0.563 & 0.562 & 0.537 & 0.531 & $+0.027\ [-0.002,0.057]$ \\
-0.005 & 0.5 & 0.662 & 0.818 & 0.831 & 0.830 & 0.782 & $-0.012\ [-0.043,0.020]$ \\
-0.005 & 0.1 & 0.663 & 0.574 & 0.583 & 0.580 & 0.575 & $-0.006\ [-0.022,0.011]$ \\
+0.05 & 0.5 & 0.244 & 0.810 & 0.784 & 0.693 & 0.667 & $+0.117\,[0.070,0.170]$ \\
+0.05 & 0.1 & 0.243 & 0.563 & 0.562 & 0.537 & 0.531 & $+0.027\,[-0.002,0.057]$ \\
+0.005 & 0.5 & 0.662 & 0.818 & 0.831 & 0.830 & 0.782 & $-0.012\,[-0.043,0.020]$ \\
+0.005 & 0.1 & 0.663 & 0.574 & 0.583 & 0.580 & 0.575 & $-0.006\,[-0.022,0.011]$ \\
 \bottomrule
 \end{tabular}
+}
 \end{table*}
 
 \subsection{Learned Sequence Models Do Not Outperform the Analytic Detector}
