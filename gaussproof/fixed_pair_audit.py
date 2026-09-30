@@ -30,7 +30,7 @@ def write_csv(path, rows):
 
 
 def fixed_world(initial, x, labels, population, background, target, dummy,
-                world, cfg, seed):
+                world, cfg, seed, utility_indices=None):
     model = initialize(cfg["source_seed"])
     model.load_state_dict(initial)
     model.eval()
@@ -42,7 +42,12 @@ def fixed_world(initial, x, labels, population, background, target, dummy,
     sd = cfg["sigma"] * cfg["clip"] / batch
     aggregate, last, raw = 0., 0., 0.
     inclusions = 0
-    for _ in range(cfg["steps"]):
+    clipped_fractions = 0.
+    prefixes = set(map(int, cfg.get("prefix_steps", [])))
+    if prefixes and (min(prefixes) < 1 or max(prefixes) > cfg["steps"]):
+        raise ValueError("Prefix checkpoints must lie within the run")
+    snapshots = {}
+    for step in range(cfg["steps"]):
         pair = clip_gradients(per_record_gradients(
             model, x[[dummy, target]], labels[[dummy, target]]), cfg["clip"])
         h0, h1 = pair[0], pair[1]
@@ -52,8 +57,9 @@ def fixed_world(initial, x, labels, population, background, target, dummy,
         inclusions += int(included)
         others = rng.choice(population, batch - int(included), replace=False)
         ids = np.r_[others, target if world else dummy] if included else others
-        clean = clip_gradients(per_record_gradients(
-            model, x[ids], labels[ids]), cfg["clip"]).mean(0)
+        batch_gradients = per_record_gradients(model, x[ids], labels[ids])
+        clipped_fractions += float((batch_gradients.norm(dim=1) > cfg["clip"]).float().mean())
+        clean = clip_gradients(batch_gradients, cfg["clip"]).mean(0)
         release = clean + torch.randn(clean.shape, generator=noise_rng) * sd
         residual = release - b
         s0, s1 = (h0 - b) / batch, (h1 - b) / batch
@@ -70,6 +76,20 @@ def fixed_world(initial, x, labels, population, background, target, dummy,
         aggregate += last
         raw += float(torch.dot(residual, h1 - h0))
         update(model, release, cfg["learning_rate"])
+        if step + 1 in prefixes:
+            with torch.no_grad():
+                logp = model(x[[dummy, target]]).log_softmax(1)
+                endpoint = float(logp[1, labels[target]] - logp[0, labels[dummy]])
+                accuracy = (float((model(x[utility_indices]).argmax(1) ==
+                                   labels[utility_indices]).float().mean())
+                            if utility_indices is not None else float("nan"))
+            snapshots[step + 1] = dict(trajectory_mixture=aggregate,
+                last_update=last, raw_alignment=raw,
+                endpoint_logprob_difference=endpoint,
+                realized_inclusions=inclusions, utility_accuracy=accuracy,
+                mean_batch_clipped_fraction=clipped_fractions / (step + 1))
+    if prefixes:
+        return snapshots
     with torch.no_grad():
         logp = model(x[[dummy, target]]).log_softmax(1)
         endpoint = float(logp[1, labels[target]] - logp[0, labels[dummy]])
