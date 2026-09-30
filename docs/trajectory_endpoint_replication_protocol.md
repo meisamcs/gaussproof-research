@@ -56,6 +56,10 @@ separately; a noise multiplier of four is not a small-epsilon claim.
 
 ## Reproduction
 
+First create the public checkpoint and fixed splits using
+`docs/canary_holdout_protocol.md` and `configs/canary_holdout.json`. The
+resulting `runs/canary_holdout` directory is the `--source` below.
+
 ```bash
 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MPLCONFIGDIR=/tmp/mpl-gaussproof \
   python -m gaussproof.trajectory_endpoint_replication \
