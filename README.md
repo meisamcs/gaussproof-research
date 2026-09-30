@@ -23,9 +23,18 @@ with and without endpoint–trajectory fusion. The
 the same fusion without repeated fingerprints.
 The [earlier distribution study](reports/dp_ftrl_distributions/README.md)
 used digit-skewed writer prefixes and is retained only as a historical audit.
-These studies compare natural writer, IID-mixed, and label-sorted EMNIST
-clients. The source-aligned NumPy mechanism does not show an operational
-high-noise membership attack; the lower-noise stress condition is separate.
+The corrected one-participation study compares natural writer, IID-mixed, and
+label-sorted EMNIST clients. The repeated-client sweep uses natural writers.
+There, \(q=B/N\) is the per-round probability that a client joins a cohort of
+\(B\) sampled from \(N\); larger \(q\) gives more expected appearances and a
+clearer trajectory signal in the small-cohort stress test. At \(B=8\),
+\(q=.5\), and tree-noise multiplier \(\sigma=4\), RMIA + GAUSSPROOF reaches
+mean client-membership AUC .645 versus RMIA's .619 across three seeds, but
+model accuracy is only .245. At \(B=32\), accuracy rises to .486 and the
+hybrid loses to RMIA (.587 versus .613). This is not a general high-noise
+attack or a demonstration that increasing noise worsens privacy. DP-FTRL's
+correlated tree noise differs from DP-SGD's per-step noise; no matched DP-SGD
+run or repeated-client user-level \(\varepsilon\) is claimed.
 
 **Status:** active research implementation. GAUSSPROOF includes a bounded nonnegative
 sparse trajectory decoder, exact known-fingerprint likelihood tests, learned temporal
