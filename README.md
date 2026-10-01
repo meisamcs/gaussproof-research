@@ -1,12 +1,38 @@
 # GAUSSPROOF
 
-A Python/PyTorch research repository for membership inference, fingerprint detection,
-and reconstruction from repeated noisy gradient releases. It trains CNNs on MNIST,
-compares black-box and white-box attacks on fixed candidates, and exports reproducible
-measurements and paper-ready vector figures.
+A Python/PyTorch research repository for white-box privacy auditing and
+fingerprint analysis of repeated noisy gradient releases. It trains CNNs on
+MNIST, compares trajectory scores with identical access, and exports
+reproducible measurements and paper-ready vector figures. The primary
+question is whether GAUSSPROOF can strengthen a **one-training-run auditor**;
+closed-gallery linkage and clean-gradient estimation are diagnostic tasks.
 
 **Start here:** [STUDENT_HANDOFF.md](STUDENT_HANDOFF.md) records the current evidence,
 the exact boundary of the claims, and the prioritized work needed to finish the paper.
+
+**Scope reset and fair white-box comparison:** [the equal-access plan](docs/gaussproof_scope_and_equal_access_plan.md)
+separates known-candidate linkage, clean-gradient estimation, and unknown-image
+reconstruction. The [new MNIST CNN pilot](reports/whitebox_gallery_pilot/README.md)
+trains 110 actual DP-SGD trajectories and compares sparse GAUSSPROOF decoding
+with centered alignment and q-aware Gaussian scores using the same releases,
+checkpoints, and candidate gallery. In its one-candidate setting, the sparse
+decoder does not outperform the analytic score; the latter yields a small
+full-vector clean-gradient gain over a public-background estimate.
+The [multi-contributor follow-up](reports/multi_contributor_pilot/README.md)
+finds a limited sparse-decoder clean-gradient advantage at sigma=1 when
+several known candidates can join a batch, but no advantage at sigma=4 and
+no contributor-identification advantage at either tested noise level.
+
+**One-run audit patch:** The [Steinke–Nasr–Jagielski-style audit pilots](reports/one_run_audit_repeated/README.md)
+randomize known canaries IN/OUT before each training run and compare the
+paper's clipped-gradient dot-product score with GAUSSPROOF-style scoring on
+the same checkpoints. The [joint persistent-canary patch](reports/one_run_audit_joint/README.md)
+raises AUC over one Gaussian approximation at moderate noise but does not
+reliably improve fixed-guess accuracy or empirical epsilon bounds over the
+paper score. In the [uniform-Poisson control](reports/one_run_audit_poisson/README.md),
+ordinary records and canaries share q=0.03125; audit power is near chance and
+the patch has no supported gain. These results do not support a high-noise
+privacy-backfire claim or an unknown-image reconstruction claim.
 
 **DP-FTRL checkpoint audit:** [experiment and reproduction commands](experiments/dp_ftrl/README.md)
 and [measured results with figures](reports/dp_ftrl/README.md) use the authors'
