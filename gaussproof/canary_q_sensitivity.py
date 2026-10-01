@@ -46,14 +46,16 @@ def write_csv(path, rows):
         writer.writerows(rows)
 
 
-def stratified_identities(candidate_pool, labels, identities_per_class):
-    """Choose the first fixed-split identities per class without cherry-picking."""
+def stratified_identities(candidate_pool, labels, identities_per_class, offset_per_class=0):
+    """Choose a fixed contiguous identity block per class without cherry-picking."""
+    if identities_per_class < 1 or offset_per_class < 0:
+        raise ValueError("Identity count must be positive and offset nonnegative")
     selected = []
     for digit in range(10):
         matches = [int(i) for i in candidate_pool if int(labels[int(i)]) == digit]
-        if len(matches) < identities_per_class:
+        if len(matches) < offset_per_class + identities_per_class:
             raise ValueError(f"Candidate pool has only {len(matches)} examples of digit {digit}")
-        selected.extend(matches[:identities_per_class])
+        selected.extend(matches[offset_per_class:offset_per_class + identities_per_class])
     return selected
 
 
@@ -155,10 +157,13 @@ def inclusion_summary(rows, q_values, lengths):
 
 
 def plot(summary, comparisons, output):
-    colors = {0.5: "#2f6f9f", 0.1: "#3b9b75", 0.02: "#d58936", 0.004: "#a34a66"}
+    q_values = sorted({float(row["q"]) for row in summary}, reverse=True)
+    lengths = sorted({int(row["steps"]) for row in summary})
+    palette = plt.get_cmap("tab10")
+    colors = {q: palette(index % 10) for index, q in enumerate(q_values)}
     fig, axes = plt.subplots(1, 2, figsize=(10.4, 4.0))
     ax = axes[0]
-    for q in sorted(colors, reverse=True):
+    for q in q_values:
         selected = [row for row in summary if row["q"] == q and row["method"] == "mixture_llr"]
         x = np.asarray([row["steps"] for row in selected])
         y = np.asarray([row["auc"] for row in selected])
@@ -168,7 +173,7 @@ def plot(summary, comparisons, output):
         ax.fill_between(x, low, high, color=colors[q], alpha=.12)
     ax.axhline(.5, color="black", linewidth=.9, alpha=.65)
     ax.set_xscale("log", base=2)
-    ax.set_xticks([16, 32, 64, 128], labels=["16", "32", "64", "128"])
+    ax.set_xticks(lengths, labels=[str(length) for length in lengths])
     ax.set_ylim(.43, 1.02)
     ax.set_xlabel("Observed releases T")
     ax.set_ylabel("Unseen-identity AUC")
@@ -177,7 +182,7 @@ def plot(summary, comparisons, output):
     ax.legend(frameon=False, ncol=2)
 
     ax = axes[1]
-    selected = [row for row in comparisons if row["steps"] == 128]
+    selected = [row for row in comparisons if row["steps"] == lengths[-1]]
     selected.sort(key=lambda row: row["q"])
     q = np.asarray([row["q"] for row in selected])
     ax.plot(q, [row["trajectory_auc"] for row in selected], marker="o",
@@ -189,7 +194,7 @@ def plot(summary, comparisons, output):
     ax.set_xticks(q, labels=[f"{value:g}" for value in q])
     ax.set_ylim(.43, 1.02)
     ax.set_xlabel("Per-round participation probability q")
-    ax.set_ylabel("AUC at T=128")
+    ax.set_ylabel(f"AUC at T={lengths[-1]}")
     ax.set_title("(b) Trajectory versus endpoint")
     ax.grid(alpha=.18)
     ax.legend(frameon=False)
@@ -230,7 +235,8 @@ def main():
     population = np.asarray(splits["population"])
     background = np.asarray(splits["background"])
     canaries = stratified_identities(
-        splits["test"], labels, int(experiment["identities_per_class"]))
+        splits["test"], labels, int(experiment["identities_per_class"]),
+        int(experiment.get("identity_offset_per_class", 0)))
     sigma = float(experiment["sigma"])
     rows = []
     for q_index, q in enumerate(q_values):
@@ -269,6 +275,7 @@ def main():
         dataset_sha256=digest(args.data), sigma=sigma, q_values=q_values,
         prefixes=lengths, holdout_identities=len(canaries),
         identities_per_class=int(experiment["identities_per_class"]),
+        identity_offset_per_class=int(experiment.get("identity_offset_per_class", 0)),
         sequences_per_identity=int(experiment["sequences_per_identity"]),
         trajectories=len(q_values) * len(canaries) * 2 * int(experiment["sequences_per_identity"]),
         exact_evolving_trajectory=True,

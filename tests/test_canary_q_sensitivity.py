@@ -12,6 +12,15 @@ class CanaryQSensitivityTests(unittest.TestCase):
         self.assertEqual(len(chosen), 20)
         self.assertEqual(np.bincount(labels[chosen], minlength=10).tolist(), [2] * 10)
 
+    def test_identity_offset_creates_disjoint_fixed_holdout(self):
+        from gaussproof.canary_q_sensitivity import stratified_identities
+        labels = np.tile(np.arange(10), 10)
+        pool = list(range(100))
+        pilot = stratified_identities(pool, labels, 2)
+        holdout = stratified_identities(pool, labels, 8, offset_per_class=2)
+        self.assertEqual(len(holdout), 80)
+        self.assertTrue(set(pilot).isdisjoint(holdout))
+
     def test_prefix_scores_use_checkpoint_loss_at_requested_prefix(self):
         from gaussproof.canary_q_sensitivity import prefix_scores
         rng = np.random.default_rng(4)
