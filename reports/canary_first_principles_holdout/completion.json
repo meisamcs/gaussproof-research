@@ -1,0 +1,33 @@
+{
+  "seconds": 1335.8619520664215,
+  "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "sigma": 4.0,
+  "q_values": [
+    0.5,
+    0.25,
+    0.1
+  ],
+  "prefixes": [
+    16,
+    32,
+    64,
+    128,
+    256
+  ],
+  "holdout_identities": 80,
+  "identities_per_class": 8,
+  "identity_offset_per_class": 2,
+  "sequences_per_identity": 2,
+  "trajectories": 960,
+  "resumed_q_values": [
+    0.5,
+    0.25
+  ],
+  "seconds_for_current_invocation": 1335.9473061561584,
+  "exact_evolving_trajectory": true,
+  "endpoint_baseline": "negative candidate cross-entropy from final checkpoint only",
+  "q_conditions_share_nested_inclusion_draws": true,
+  "source_completion_sha256": "0a978672c32ac59fb77fc7c5cfa95666b0c0318a08a2ee3b8135744b8b4ab626",
+  "implementation_sha256": "7474b0f3be5dda144b5405ce7f4d912795ec75e40a8c7f60650bfeb60f71d0ea",
+  "torch": "2.5.1"
+}

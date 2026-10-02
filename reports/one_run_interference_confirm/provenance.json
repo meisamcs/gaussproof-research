@@ -1,0 +1,38 @@
+{
+  "config": {
+    "seed": 20261121,
+    "classes": [
+      1,
+      7
+    ],
+    "canaries_per_class": 32,
+    "pool_per_class": 75,
+    "sigmas": [
+      2.0
+    ],
+    "clip": 1.0,
+    "batch_size": 24,
+    "learning_rate": 0.005,
+    "q": 0.1,
+    "sampling_mode": "poisson",
+    "population_size": 240,
+    "steps": 256,
+    "repetitions": 20,
+    "background_size": 64,
+    "query_size": 128,
+    "positive_guesses": 16,
+    "negative_guesses": 16,
+    "sparse_penalty_factor": 0.25,
+    "joint_iterations": 8,
+    "joint_damping": 0.5,
+    "familywise_alpha": 0.05,
+    "delta": 1e-05
+  },
+  "completed_repetitions": 20,
+  "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "source_checkpoint_sha256": "ec9d8673f8c4e3ffc9611c82afeb047a0bcb94aa8f24d1b7fa6746203d933edb",
+  "seconds": 287.7113678455353,
+  "torch": "2.5.1",
+  "selection": "Initial public clipped gradients, fixed two classes; no audit bits or releases",
+  "inference": "Fixed 16 IN and 16 OUT guesses; within-run Bonferroni across five scores"
+}

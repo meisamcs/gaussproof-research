@@ -1,0 +1,5 @@
+q,steps,endpoint_lira_selected,endpoint_rmia_selected,endpoint_best_selected,calibration_identities,holdout_identities
+0.5,64,endpoint_lira_z,endpoint_rmia_a100_g100,endpoint_rmia_a100_g100,20,80
+0.5,128,endpoint_lira_z,endpoint_rmia_a000_g105,endpoint_lira_z,20,80
+0.1,64,endpoint_lira_z,endpoint_rmia_a050_g100,endpoint_lira_z,20,80
+0.1,128,endpoint_lira_z,endpoint_rmia_a000_g105,endpoint_loss,20,80

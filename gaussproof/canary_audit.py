@@ -45,7 +45,7 @@ def update(model, release, lr):
 
 
 def run_sequence(initial, x, labels, population, background, canary, cfg, sigma,
-                 seed, include_probability):
+                 seed, include_probability, query_indices=None, query_steps=None):
     """Generate one evolving noisy trajectory and hidden canary schedule."""
     model = copy.deepcopy(initial)
     rng = np.random.default_rng(seed)
@@ -57,7 +57,16 @@ def run_sequence(initial, x, labels, population, background, canary, cfg, sigma,
     noise_rng = torch.Generator().manual_seed(seed + 100000)
     observations, fingerprints, backgrounds, included = [], [], [], []
     endpoint_losses, endpoint_confidences = [], []
-    for _ in range(cfg["steps"]):
+    if (query_indices is None) != (query_steps is None):
+        raise ValueError("query_indices and query_steps must be supplied together")
+    if query_indices is not None:
+        query_indices = np.asarray(query_indices, dtype=np.int64)
+        query_steps = set(int(step) for step in query_steps)
+        if (query_indices.ndim != 1 or not len(query_indices) or not query_steps or
+                min(query_steps) < 1 or max(query_steps) > cfg["steps"]):
+            raise ValueError("Invalid endpoint query indices or steps")
+    query_probs, query_predictions = {}, {}
+    for step in range(cfg["steps"]):
         canary_gradient = clip_gradients(
             per_record_gradients(model, x[canary:canary + 1], labels[canary:canary + 1]),
             cfg["clip"])[0]
@@ -88,10 +97,23 @@ def run_sequence(initial, x, labels, population, background, canary, cfg, sigma,
                 logits, labels[canary:canary + 1])))
             endpoint_confidences.append(float(
                 logits.softmax(1)[0, int(labels[canary])]))
-    return dict(observations=np.asarray(observations), fingerprints=np.asarray(fingerprints),
-                backgrounds=np.asarray(backgrounds), included=np.asarray(included),
-                endpoint_losses=np.asarray(endpoint_losses),
-                endpoint_confidences=np.asarray(endpoint_confidences))
+            if query_indices is not None and step + 1 in query_steps:
+                probabilities, predictions = [], []
+                for indices in np.array_split(query_indices,
+                                              max(1, int(np.ceil(len(query_indices) / 256)))):
+                    p = model(x[indices]).softmax(1)
+                    probabilities.append(p[torch.arange(len(indices)), labels[indices]].numpy())
+                    predictions.append(p.argmax(1).numpy())
+                query_probs[step + 1] = np.concatenate(probabilities)
+                query_predictions[step + 1] = np.concatenate(predictions)
+    result = dict(observations=np.asarray(observations), fingerprints=np.asarray(fingerprints),
+                  backgrounds=np.asarray(backgrounds), included=np.asarray(included),
+                  endpoint_losses=np.asarray(endpoint_losses),
+                  endpoint_confidences=np.asarray(endpoint_confidences))
+    if query_indices is not None:
+        result["endpoint_query_probs"] = query_probs
+        result["endpoint_query_predictions"] = query_predictions
+    return result
 
 
 def scores(run, sigma, batch_size):

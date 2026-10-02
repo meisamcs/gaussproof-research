@@ -1,0 +1,16 @@
+q,steps,method,auc,auc_ci_low,auc_ci_high,expected_inclusions,probability_at_least_one,bootstrap_repetitions,bootstrap_unit
+0.5,16,mixture_llr,0.7395312500000001,0.7054648437499998,0.78390625,8.0,0.9999847412109375,2000,identity and paired sequence index
+0.5,16,endpoint_neg_loss,0.5995312500000001,0.5856210937499999,0.6271914062500001,8.0,0.9999847412109375,2000,identity and paired sequence index
+0.5,16,endpoint_confidence,0.5995312500000001,0.5856210937499999,0.6271914062500001,8.0,0.9999847412109375,2000,identity and paired sequence index
+0.5,32,mixture_llr,0.79015625,0.75342578125,0.8362499999999999,16.0,0.9999999997671694,2000,identity and paired sequence index
+0.5,32,endpoint_neg_loss,0.6507812500000001,0.6321875,0.6823476562499999,16.0,0.9999999997671694,2000,identity and paired sequence index
+0.5,32,endpoint_confidence,0.6507812500000001,0.6321875,0.6823476562499999,16.0,0.9999999997671694,2000,identity and paired sequence index
+0.5,64,mixture_llr,0.869375,0.8282734375,0.9132851562500001,32.0,1.0,2000,identity and paired sequence index
+0.5,64,endpoint_neg_loss,0.69921875,0.6743671874999999,0.73437890625,32.0,1.0,2000,identity and paired sequence index
+0.5,64,endpoint_confidence,0.69921875,0.6743671874999999,0.73437890625,32.0,1.0,2000,identity and paired sequence index
+0.5,128,mixture_llr,0.89890625,0.8620273437499999,0.9367226562500001,64.0,1.0,2000,identity and paired sequence index
+0.5,128,endpoint_neg_loss,0.8204687500000001,0.77999609375,0.8664101562500001,64.0,1.0,2000,identity and paired sequence index
+0.5,128,endpoint_confidence,0.8204687500000001,0.77999609375,0.8664101562500001,64.0,1.0,2000,identity and paired sequence index
+0.5,256,mixture_llr,0.91046875,0.87734375,0.944375,128.0,1.0,2000,identity and paired sequence index
+0.5,256,endpoint_neg_loss,0.8931250000000001,0.8614023437499999,0.92828125,128.0,1.0,2000,identity and paired sequence index
+0.5,256,endpoint_confidence,0.8931250000000001,0.8614023437499999,0.92828125,128.0,1.0,2000,identity and paired sequence index

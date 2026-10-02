@@ -1,0 +1,25 @@
+{
+  "seconds": 2047.586410999298,
+  "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "checkpoint_sha256": "ec9d8673f8c4e3ffc9611c82afeb047a0bcb94aa8f24d1b7fa6746203d933edb",
+  "source_run": "../gaussproof-mia/runs/canary_holdout",
+  "q": 0.004,
+  "sigma": 8.0,
+  "clip": 1.0,
+  "batch_size": 8,
+  "steps": 512,
+  "learning_rate": 0.00125,
+  "calibration_identities": 20,
+  "holdout_identities": 80,
+  "scenarios": [
+    {
+      "name": "full",
+      "cadence": 1,
+      "stale": 1,
+      "assumed_sigma": 8.0
+    }
+  ],
+  "paired_world_seeds": true,
+  "model_utility_query_disjoint": true,
+  "torch": "2.5.1"
+}

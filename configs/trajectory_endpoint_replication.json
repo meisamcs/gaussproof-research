@@ -1,0 +1,12 @@
+{
+  "sigma": 4.0,
+  "q_values": [0.5, 0.1],
+  "prefix_steps": [64, 128],
+  "identities_per_class": 10,
+  "calibration_per_class": 2,
+  "reference_models": 32,
+  "rmia_population": 128,
+  "bootstrap_repetitions": 1000,
+  "seed": 20260929,
+  "bootstrap_seed": 20260930
+}

@@ -1,0 +1,20 @@
+{
+  "seed": 20261001,
+  "sigma": 4.0,
+  "clip": 1.0,
+  "batch_size": 8,
+  "learning_rate": 0.005,
+  "q": 0.5,
+  "prefix_steps": [64, 128],
+  "gallery_size": 32,
+  "calibration_identities": 10,
+  "evaluation_identities": 20,
+  "calibration_repetitions": 1,
+  "evaluation_repetitions": 2,
+  "null_identities": 5,
+  "query_size": 128,
+  "distributions": ["balanced", "long_tail"],
+  "penalty_factors": [0.0, 0.25, 0.5, 1.0],
+  "bootstrap_repetitions": 1000,
+  "delta": 0.00001
+}

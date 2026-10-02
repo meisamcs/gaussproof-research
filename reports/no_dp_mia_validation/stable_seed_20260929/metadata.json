@@ -1,0 +1,35 @@
+{
+  "design": "non-DP record-level positive control; one record per writer",
+  "dataset_sha256": "0540b878da75b6a9a8c14fadae5c4b0a62cf12f8ff5fcf675b6f6c6c774df323",
+  "parameters": {
+    "per_digit": 12,
+    "population_per_digit": 24,
+    "references": 8,
+    "epochs": 500,
+    "hidden": 128,
+    "learning_rate": 0.001,
+    "bootstrap": 400,
+    "seed": 20260929
+  },
+  "role_counts": {
+    "member": 120,
+    "nonmember": 120,
+    "population": 240,
+    "independent_train": 120,
+    "reference_0": 120,
+    "reference_1": 120,
+    "reference_2": 120,
+    "reference_3": 120,
+    "reference_4": 120,
+    "reference_5": 120,
+    "reference_6": 120,
+    "reference_7": 120
+  },
+  "roles_disjoint": true,
+  "target_train_accuracy": 1.0,
+  "target_nonmember_accuracy": 0.725,
+  "target_candidate_accuracy": 0.8625,
+  "independent_candidate_accuracy": 0.7416666666666667,
+  "external_pierre_parity": true,
+  "caution": "This is a record-level, deliberately overfitted, no-DP positive control; it is not a DP-FTRLM result"
+}

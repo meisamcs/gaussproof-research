@@ -182,11 +182,16 @@ def plot_summary(summary, output):
     for distribution in sorted(set(row["distribution"] for row in summary)):
         selected = [row for row in summary if row["distribution"] == distribution and
                     row["background_model"] == "matched"]
-        ax.plot([row["steps"] for row in selected], [row["top1"] for row in selected],
-                marker="o", label=distribution.replace("_", " "))
+        line, = ax.plot([row["steps"] for row in selected],
+                        [row["top1"] for row in selected],
+                        marker="o", label=distribution.replace("_", " "))
+        ax.fill_between([row["steps"] for row in selected],
+                        [row["top1_ci_low"] for row in selected],
+                        [row["top1_ci_high"] for row in selected],
+                        color=line.get_color(), alpha=.08)
     ax.axhline(1 / 32, color="black", linestyle="--", linewidth=1, label="random top-1")
     ax.set_xscale("log", base=2); ax.set_xticks([16, 32, 64, 128], labels=["16", "32", "64", "128"])
-    ax.set_ylim(0, 1.02); ax.set_xlabel("Observed DP-SGD releases")
+    ax.set_ylim(0, .4); ax.set_xlabel("Observed DP-SGD releases")
     ax.set_ylabel("Exact-image top-1 recovery")
     ax.set_title("Real-sample recovery from a 32-image gallery (σ=4)")
     ax.grid(alpha=.2); ax.legend(fontsize=8); fig.tight_layout()
@@ -236,7 +241,9 @@ def plot_examples(rows, gallery, x, labels, distribution, output):
                 row["background_model"] == "matched" and
                 row["method"] == "mixture_llr" and row["repetition"] == 0]
     by_key = {(row["true_position"], row["steps"]): row for row in examples}
-    positions = sorted(set(row["true_position"] for row in examples))
+    # Keep the visualization readable when the evaluation contains more
+    # identities; all identities still contribute to aggregate metrics.
+    positions = sorted(set(row["true_position"] for row in examples))[:10]
     fig, axes = plt.subplots(3, len(positions), figsize=(1.45 * len(positions), 4.5))
     for column, position in enumerate(positions):
         truth_index = int(gallery[position])

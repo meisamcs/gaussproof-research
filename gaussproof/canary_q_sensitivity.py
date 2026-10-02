@@ -46,14 +46,50 @@ def write_csv(path, rows):
         writer.writerows(rows)
 
 
-def stratified_identities(candidate_pool, labels, identities_per_class):
-    """Choose the first fixed-split identities per class without cherry-picking."""
+def load_completed_q_rows(path, q_values, lengths, canaries, sigma, sequences):
+    """Recover only complete q arms from an interrupted sweep."""
+    if not path.exists():
+        return [], set()
+    integer_fields = {"canary", "digit", "label", "sequence", "steps"}
+    float_fields = {"q", "sigma", "inclusion_rate", "sequence_llr",
+                    "mixture_llr", "endpoint_neg_loss", "endpoint_confidence"}
+    with path.open(newline="") as stream:
+        raw = list(csv.DictReader(stream))
+    if not raw:
+        raise ValueError(f"Existing score file is empty: {path}")
+    rows = []
+    for record in raw:
+        row = {key: int(value) if key in integer_fields else float(value)
+               if key in float_fields else value for key, value in record.items()}
+        if set(row) != integer_fields | float_fields:
+            raise ValueError("Existing score file has an unexpected schema")
+        rows.append(row)
+    found_q = {row["q"] for row in rows}
+    if not found_q.issubset(set(q_values)):
+        raise ValueError("Existing score file contains a q outside this config")
+    expected = {(canary, sequence, label, step)
+                for canary in canaries for sequence in range(sequences)
+                for label in (0, 1) for step in lengths}
+    for q in found_q:
+        selected = [row for row in rows if row["q"] == q]
+        keys = [(row["canary"], row["sequence"], row["label"], row["steps"])
+                for row in selected]
+        if (len(keys) != len(expected) or set(keys) != expected or
+                any(row["sigma"] != sigma for row in selected)):
+            raise ValueError(f"Existing q={q:g} arm is incomplete or mismatched")
+    return rows, found_q
+
+
+def stratified_identities(candidate_pool, labels, identities_per_class, offset_per_class=0):
+    """Choose a fixed contiguous identity block per class without cherry-picking."""
+    if identities_per_class < 1 or offset_per_class < 0:
+        raise ValueError("Identity count must be positive and offset nonnegative")
     selected = []
     for digit in range(10):
         matches = [int(i) for i in candidate_pool if int(labels[int(i)]) == digit]
-        if len(matches) < identities_per_class:
+        if len(matches) < offset_per_class + identities_per_class:
             raise ValueError(f"Candidate pool has only {len(matches)} examples of digit {digit}")
-        selected.extend(matches[:identities_per_class])
+        selected.extend(matches[offset_per_class:offset_per_class + identities_per_class])
     return selected
 
 
@@ -155,10 +191,13 @@ def inclusion_summary(rows, q_values, lengths):
 
 
 def plot(summary, comparisons, output):
-    colors = {0.5: "#2f6f9f", 0.1: "#3b9b75", 0.02: "#d58936", 0.004: "#a34a66"}
+    q_values = sorted({float(row["q"]) for row in summary}, reverse=True)
+    lengths = sorted({int(row["steps"]) for row in summary})
+    palette = plt.get_cmap("tab10")
+    colors = {q: palette(index % 10) for index, q in enumerate(q_values)}
     fig, axes = plt.subplots(1, 2, figsize=(10.4, 4.0))
     ax = axes[0]
-    for q in sorted(colors, reverse=True):
+    for q in q_values:
         selected = [row for row in summary if row["q"] == q and row["method"] == "mixture_llr"]
         x = np.asarray([row["steps"] for row in selected])
         y = np.asarray([row["auc"] for row in selected])
@@ -168,7 +207,7 @@ def plot(summary, comparisons, output):
         ax.fill_between(x, low, high, color=colors[q], alpha=.12)
     ax.axhline(.5, color="black", linewidth=.9, alpha=.65)
     ax.set_xscale("log", base=2)
-    ax.set_xticks([16, 32, 64, 128], labels=["16", "32", "64", "128"])
+    ax.set_xticks(lengths, labels=[str(length) for length in lengths])
     ax.set_ylim(.43, 1.02)
     ax.set_xlabel("Observed releases T")
     ax.set_ylabel("Unseen-identity AUC")
@@ -177,7 +216,7 @@ def plot(summary, comparisons, output):
     ax.legend(frameon=False, ncol=2)
 
     ax = axes[1]
-    selected = [row for row in comparisons if row["steps"] == 128]
+    selected = [row for row in comparisons if row["steps"] == lengths[-1]]
     selected.sort(key=lambda row: row["q"])
     q = np.asarray([row["q"] for row in selected])
     ax.plot(q, [row["trajectory_auc"] for row in selected], marker="o",
@@ -189,7 +228,7 @@ def plot(summary, comparisons, output):
     ax.set_xticks(q, labels=[f"{value:g}" for value in q])
     ax.set_ylim(.43, 1.02)
     ax.set_xlabel("Per-round participation probability q")
-    ax.set_ylabel("AUC at T=128")
+    ax.set_ylabel(f"AUC at T={lengths[-1]}")
     ax.set_title("(b) Trajectory versus endpoint")
     ax.grid(alpha=.18)
     ax.legend(frameon=False)
@@ -205,6 +244,8 @@ def main():
     parser.add_argument("--data", required=True)
     parser.add_argument("--config", default="configs/canary_q_sensitivity.json")
     parser.add_argument("--output", default="runs/canary_q_sensitivity")
+    parser.add_argument("--resume", action="store_true",
+                        help="Reuse only validated complete q arms in an unfinished output")
     args = parser.parse_args()
     source, output = Path(args.source), Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
@@ -230,10 +271,19 @@ def main():
     population = np.asarray(splits["population"])
     background = np.asarray(splits["background"])
     canaries = stratified_identities(
-        splits["test"], labels, int(experiment["identities_per_class"]))
+        splits["test"], labels, int(experiment["identities_per_class"]),
+        int(experiment.get("identity_offset_per_class", 0)))
     sigma = float(experiment["sigma"])
-    rows = []
+    score_path = output / "scores.csv"
+    if score_path.exists() and not args.resume:
+        raise RuntimeError("Existing score rows found; pass --resume or use a new output")
+    rows, completed_q = load_completed_q_rows(
+        score_path, q_values, lengths, canaries, sigma,
+        int(experiment["sequences_per_identity"])) if args.resume else ([], set())
     for q_index, q in enumerate(q_values):
+        if q in completed_q:
+            print(f"q={q:g} already complete; reusing validated rows", flush=True)
+            continue
         print(f"q={q:g} ({q_index + 1}/{len(q_values)})", flush=True)
         for canary_index, canary in enumerate(canaries):
             print(f"  identity {canary_index + 1}/{len(canaries)}", flush=True)
@@ -269,8 +319,11 @@ def main():
         dataset_sha256=digest(args.data), sigma=sigma, q_values=q_values,
         prefixes=lengths, holdout_identities=len(canaries),
         identities_per_class=int(experiment["identities_per_class"]),
+        identity_offset_per_class=int(experiment.get("identity_offset_per_class", 0)),
         sequences_per_identity=int(experiment["sequences_per_identity"]),
         trajectories=len(q_values) * len(canaries) * 2 * int(experiment["sequences_per_identity"]),
+        resumed_q_values=sorted(completed_q, reverse=True),
+        seconds_for_current_invocation=time.time() - started,
         exact_evolving_trajectory=True,
         endpoint_baseline="negative candidate cross-entropy from final checkpoint only",
         q_conditions_share_nested_inclusion_draws=True,

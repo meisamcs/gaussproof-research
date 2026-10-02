@@ -1,0 +1,76 @@
+{
+  "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "source_checkpoint_sha256": "ec9d8673f8c4e3ffc9611c82afeb047a0bcb94aa8f24d1b7fa6746203d933edb",
+  "source_run": "../gaussproof-mia/runs/canary_holdout",
+  "config": {
+    "seed": 20261001,
+    "sigma": 4.0,
+    "clip": 1.0,
+    "batch_size": 8,
+    "learning_rate": 0.005,
+    "q": 0.5,
+    "prefix_steps": [
+      64,
+      128
+    ],
+    "gallery_size": 32,
+    "calibration_identities": 10,
+    "evaluation_identities": 20,
+    "calibration_repetitions": 1,
+    "evaluation_repetitions": 2,
+    "null_identities": 5,
+    "query_size": 128,
+    "distributions": [
+      "balanced",
+      "long_tail"
+    ],
+    "penalty_factors": [
+      0.0,
+      0.25,
+      0.5,
+      1.0
+    ],
+    "bootstrap_repetitions": 1000,
+    "delta": 1e-05
+  },
+  "calibration_positions": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "evaluation_positions": [
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29
+  ],
+  "gallery_indices_sha256": "e13d8ca5015660660049459435f8b9b889f1507b260b004ec5f8e666f7a76ef2",
+  "trajectories": 110,
+  "seconds": 511.92142605781555,
+  "role_separation": "public pretraining/background/query; private population; known gallery",
+  "privacy_accounting": "replace-one no-amplification upper bound, not tight sampling accountant",
+  "torch": "2.5.1"
+}

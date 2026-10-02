@@ -42,8 +42,13 @@ class AttackTests(unittest.TestCase):
         x=np.array([.1,.5,.9]);refs=np.array([[.1,.2,.3],[.2,.3,.4]])
         z=np.array([.2,.7]);zrefs=np.array([[.3,.5],[.2,.4]])
         den=lambda r:.75*r.mean(0)+.25
-        manual=((x/den(refs))[:,None]>(z/den(zrefs))[None,:]).mean(1)
+        manual=((x/den(refs))[:,None]>=(z/den(zrefs))[None,:]).mean(1)
         np.testing.assert_array_equal(rmia(x,refs,z,zrefs),manual)
+
+    def test_rmia_dominance_includes_equality(self):
+        x=np.array([.2]); refs=np.array([[.2]])
+        z=np.array([.2]); zrefs=np.array([[.2]])
+        np.testing.assert_array_equal(rmia(x,refs,z,zrefs),[1.])
 
     def test_logistic_heldout_signal(self):
         rng=np.random.default_rng(4);x=rng.normal(size=(400,3));y=(x[:,0]>0).astype(int)

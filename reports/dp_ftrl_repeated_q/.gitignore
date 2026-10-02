@@ -1,0 +1,4 @@
+# Per-run outputs stay local; replicated/ contains the aggregate CSVs and figures.
+/seed_*/
+/large_batch_seed_*/
+/long_batch_seed_*/

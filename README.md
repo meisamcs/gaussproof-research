@@ -1,18 +1,66 @@
 # GAUSSPROOF
 
-A Python/PyTorch research repository for membership inference, fingerprint detection,
-and reconstruction from repeated noisy gradient releases. It trains CNNs on MNIST,
-compares black-box and white-box attacks on fixed candidates, and exports reproducible
-measurements and paper-ready vector figures.
+A Python/PyTorch research repository for white-box privacy auditing and
+fingerprint analysis of repeated noisy gradient releases. It trains CNNs on
+MNIST, compares trajectory scores with identical access, and exports
+reproducible measurements and paper-ready vector figures. The primary
+question is whether GAUSSPROOF can strengthen a **one-training-run auditor**;
+closed-gallery linkage and clean-gradient estimation are diagnostic tasks.
 
 **Start here:** [STUDENT_HANDOFF.md](STUDENT_HANDOFF.md) records the current evidence,
 the exact boundary of the claims, and the prioritized work needed to finish the paper.
+
+**Scope reset and fair white-box comparison:** [the equal-access plan](docs/gaussproof_scope_and_equal_access_plan.md)
+separates known-candidate linkage, clean-gradient estimation, and unknown-image
+reconstruction. The [new MNIST CNN pilot](reports/whitebox_gallery_pilot/README.md)
+trains 110 actual DP-SGD trajectories and compares sparse GAUSSPROOF decoding
+with centered alignment and q-aware Gaussian scores using the same releases,
+checkpoints, and candidate gallery. In its one-candidate setting, the sparse
+decoder does not outperform the analytic score; the latter yields a small
+full-vector clean-gradient gain over a public-background estimate.
+The [multi-contributor follow-up](reports/multi_contributor_pilot/README.md)
+finds a limited sparse-decoder clean-gradient advantage at sigma=1 when
+several known candidates can join a batch, but no advantage at sigma=4 and
+no contributor-identification advantage at either tested noise level.
+
+**One-run audit patch:** The [Steinke–Nasr–Jagielski-style audit pilots](reports/one_run_audit_repeated/README.md)
+randomize known canaries IN/OUT before each training run and compare the
+paper's clipped-gradient dot-product score with GAUSSPROOF-style scoring on
+the same checkpoints. The [joint persistent-canary patch](reports/one_run_audit_joint/README.md)
+raises AUC over one Gaussian approximation at moderate noise but does not
+reliably improve fixed-guess accuracy or empirical epsilon bounds over the
+paper score. In the [uniform-Poisson control](reports/one_run_audit_poisson/README.md),
+ordinary records and canaries share q=0.03125; audit power is near chance and
+the patch has no supported gain. These results do not support a high-noise
+privacy-backfire claim or an unknown-image reconstruction claim.
 
 **DP-FTRL checkpoint audit:** [experiment and reproduction commands](experiments/dp_ftrl/README.md)
 and [measured results with figures](reports/dp_ftrl/README.md) use the authors'
 pinned tree-noise implementation. The trajectory signal depends strongly on
 knowing the other batch records; this is a controlled audit, not a general
 attack on deployed federated DP-FTRL.
+
+**Federated client-distribution pilot:** [corrected three-seed DP-FTRLM
+comparison with calibrated LiRA/RMIA](reports/dp_ftrl_calibrated_uniform/README.md).
+The [repeated-client q sweep](reports/dp_ftrl_repeated_q/README.md) tests
+high-participation cohorts against LiRA, RMIA, RERO-style, and GAUSSPROOF
+with and without endpoint–trajectory fusion. The
+[one-participation control](reports/dp_ftrl_hybrid_uniform/README.md) tests
+the same fusion without repeated fingerprints.
+The [earlier distribution study](reports/dp_ftrl_distributions/README.md)
+used digit-skewed writer prefixes and is retained only as a historical audit.
+The corrected one-participation study compares natural writer, IID-mixed, and
+label-sorted EMNIST clients. The repeated-client sweep uses natural writers.
+There, `q = B/N` is the per-round probability that a client joins a cohort of
+`B` sampled from `N`; larger `q` gives more expected appearances and a
+clearer trajectory signal in the small-cohort stress test. At `B=8`,
+`q=.5`, and tree-noise multiplier `sigma=4`, RMIA + GAUSSPROOF reaches
+mean client-membership AUC .645 versus RMIA's .619 across three seeds, but
+model accuracy is only .245. At \(B=32\), accuracy rises to .486 and the
+hybrid loses to RMIA (.587 versus .613). This is not a general high-noise
+attack or a demonstration that increasing noise worsens privacy. DP-FTRL's
+correlated tree noise differs from DP-SGD's per-step noise; no matched DP-SGD
+run or repeated-client user-level `epsilon` is claimed.
 
 **Status:** active research implementation. GAUSSPROOF includes a bounded nonnegative
 sparse trajectory decoder, exact known-fingerprint likelihood tests, learned temporal
@@ -250,6 +298,34 @@ effect depends on frequent participation: at the ordinary-sampling proxy
 `q=0.004`, where only 0.512 inclusions are expected in 128 rounds, neither
 interface provides detectable membership evidence.
 
+The [paired strong-endpoint replication](reports/trajectory_endpoint_replication/README.md)
+evaluates 80 new held-out identities against final-model LiRA and RMIA trained
+with 32 disjoint public OUT references. At the original learning rate, the
+q-aware trajectory beats the best calibrated endpoint by 0.117 AUC at
+`q=0.5,T=128`, but the model has only 24% public-query accuracy. An exploratory
+higher-utility rate gives 66% accuracy, trajectory AUC 0.818, and LiRA AUC
+0.830. Their paired difference interval includes zero, and trajectory--LiRA
+fusion adds no clear signal. The apparent interface advantage therefore does
+not survive this stronger endpoint comparison in the useful-model condition.
+
+The [matched access-robustness experiment](reports/trajectory_access_robustness/README.md)
+holds a useful CNN and 80 unseen natural identities fixed while withholding
+releases, using stale fingerprints, or misspecifying the noise multiplier.
+The q-aware fingerprint score reaches AUC 0.763 with all releases, versus
+0.764 for an equal-access linear projection and 0.799 for a final-model
+LiRA-style control. Seeing only every sixteenth release lowers both
+trajectory scores to about 0.58. This operational test finds no distinct
+GAUSSPROOF score or fusion advantage.
+
+The [ordinary-rate matched-budget experiment](reports/ordinary_q_budget/README.md)
+extends a known natural record's eligibility from 128 to 512 DP-SGD steps at
+`q=0.004`, while doubling the noise multiplier from 4 to 8 so the conservative
+no-amplification privacy upper bound remains `epsilon <= 43.14`.
+Positive-run appearances rise from 0.46 to 2.24 on average, but the
+q-aware trajectory AUC moves only from 0.502 to 0.505; the paired gain
+interval includes zero. Model accuracy stays near 69%. Longer observation
+does not yield a useful attack under this matched conservative bound.
+
 The [real-canary gallery experiment](reports/canary_gallery/README.md) turns
 that high-noise evidence into record linkage across four private label
 distributions. At sigma 4 and 128 releases, exact top-1 recovery from a 32-image
@@ -260,6 +336,13 @@ fingerprint information. A background-mismatch control also shows that class
 distribution leakage can mimic reconstruction. The result is exact candidate
 re-identification; removing the true image does not establish unknown-image
 synthesis.
+
+The [30-identity gallery replication](reports/canary_gallery_replication/README.md)
+finds 13--15% exact top-1 recovery across four matched-background
+distributions, compared with 3.1% at random. Its wider identity coverage
+reduces the optimistic pilot estimate and confirms that a mismatched public
+background can expose a digit distribution without identifying an individual
+image.
 
 ## Learned-prior gradient and image reconstruction
 

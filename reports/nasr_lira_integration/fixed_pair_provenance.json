@@ -1,0 +1,15 @@
+{
+  "seconds": 369.28804898262024,
+  "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "dummy_index": 24898,
+  "target_index": 46993,
+  "dummy_digit": 9,
+  "target_digit": 4,
+  "n_calibration_pairs": 30,
+  "n_holdout_pairs": 80,
+  "sampler": "Bernoulli privileged slot, fixed replace-one pair; not uniform minibatch",
+  "delta": 1e-05,
+  "conservative_zcdp_epsilon_upper_no_amplification": 43.14456169766045,
+  "interpretation": "empirical lower bound applies to this fixed neighboring pair only",
+  "torch": "2.5.1"
+}

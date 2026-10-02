@@ -1,0 +1,9 @@
+{
+  "bootstrap_repetitions": 3000,
+  "clustered_unit": "independent target training run",
+  "calibration_and_evaluation_disjoint": true,
+  "selected_sparse": {
+    "1.0": "sparse_0.25",
+    "4.0": "sparse_1"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "references_sha256": "81aa8895356407a9448cd097f7549384b14f7753a8ee9ba003a2badf62f11a65",
+  "reference_models": 32,
+  "out_reference_predictions_reused": true,
+  "same_public_initialization": true,
+  "same_sigma": true,
+  "same_learning_rate": true,
+  "matched_candidate_order": true,
+  "variant": "one-sided standardized OUT-logit LiRA",
+  "fusion_weight_grid": [
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0
+  ],
+  "fusion_calibration_aucs": [
+    0.89,
+    0.895,
+    0.8725,
+    0.845,
+    0.8225
+  ],
+  "fusion_selected_weight": 0.25
+}
