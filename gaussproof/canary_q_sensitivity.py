@@ -46,6 +46,40 @@ def write_csv(path, rows):
         writer.writerows(rows)
 
 
+def load_completed_q_rows(path, q_values, lengths, canaries, sigma, sequences):
+    """Recover only complete q arms from an interrupted sweep."""
+    if not path.exists():
+        return [], set()
+    integer_fields = {"canary", "digit", "label", "sequence", "steps"}
+    float_fields = {"q", "sigma", "inclusion_rate", "sequence_llr",
+                    "mixture_llr", "endpoint_neg_loss", "endpoint_confidence"}
+    with path.open(newline="") as stream:
+        raw = list(csv.DictReader(stream))
+    if not raw:
+        raise ValueError(f"Existing score file is empty: {path}")
+    rows = []
+    for record in raw:
+        row = {key: int(value) if key in integer_fields else float(value)
+               if key in float_fields else value for key, value in record.items()}
+        if set(row) != integer_fields | float_fields:
+            raise ValueError("Existing score file has an unexpected schema")
+        rows.append(row)
+    found_q = {row["q"] for row in rows}
+    if not found_q.issubset(set(q_values)):
+        raise ValueError("Existing score file contains a q outside this config")
+    expected = {(canary, sequence, label, step)
+                for canary in canaries for sequence in range(sequences)
+                for label in (0, 1) for step in lengths}
+    for q in found_q:
+        selected = [row for row in rows if row["q"] == q]
+        keys = [(row["canary"], row["sequence"], row["label"], row["steps"])
+                for row in selected]
+        if (len(keys) != len(expected) or set(keys) != expected or
+                any(row["sigma"] != sigma for row in selected)):
+            raise ValueError(f"Existing q={q:g} arm is incomplete or mismatched")
+    return rows, found_q
+
+
 def stratified_identities(candidate_pool, labels, identities_per_class, offset_per_class=0):
     """Choose a fixed contiguous identity block per class without cherry-picking."""
     if identities_per_class < 1 or offset_per_class < 0:
@@ -210,6 +244,8 @@ def main():
     parser.add_argument("--data", required=True)
     parser.add_argument("--config", default="configs/canary_q_sensitivity.json")
     parser.add_argument("--output", default="runs/canary_q_sensitivity")
+    parser.add_argument("--resume", action="store_true",
+                        help="Reuse only validated complete q arms in an unfinished output")
     args = parser.parse_args()
     source, output = Path(args.source), Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
@@ -238,8 +274,16 @@ def main():
         splits["test"], labels, int(experiment["identities_per_class"]),
         int(experiment.get("identity_offset_per_class", 0)))
     sigma = float(experiment["sigma"])
-    rows = []
+    score_path = output / "scores.csv"
+    if score_path.exists() and not args.resume:
+        raise RuntimeError("Existing score rows found; pass --resume or use a new output")
+    rows, completed_q = load_completed_q_rows(
+        score_path, q_values, lengths, canaries, sigma,
+        int(experiment["sequences_per_identity"])) if args.resume else ([], set())
     for q_index, q in enumerate(q_values):
+        if q in completed_q:
+            print(f"q={q:g} already complete; reusing validated rows", flush=True)
+            continue
         print(f"q={q:g} ({q_index + 1}/{len(q_values)})", flush=True)
         for canary_index, canary in enumerate(canaries):
             print(f"  identity {canary_index + 1}/{len(canaries)}", flush=True)
@@ -278,6 +322,8 @@ def main():
         identity_offset_per_class=int(experiment.get("identity_offset_per_class", 0)),
         sequences_per_identity=int(experiment["sequences_per_identity"]),
         trajectories=len(q_values) * len(canaries) * 2 * int(experiment["sequences_per_identity"]),
+        resumed_q_values=sorted(completed_q, reverse=True),
+        seconds_for_current_invocation=time.time() - started,
         exact_evolving_trajectory=True,
         endpoint_baseline="negative candidate cross-entropy from final checkpoint only",
         q_conditions_share_nested_inclusion_draws=True,

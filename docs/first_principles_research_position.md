@@ -86,18 +86,26 @@ release horizon at which the signal becomes useful. Nasr-style projection is
 an essential equal-access control and part of the relevant prior art, not a
 competitor that GAUSSPROOF must necessarily defeat to establish the exposure.
 
-## Focused next experiment
+## New first-principles replication
 
-Pre-register an exact evolving-model, held-out-identity experiment at fixed
-\(C,B\), varying only \(q\), \(\sigma\), and nested trajectory length \(T\).
-Use the same paired runs for every prefix and the same natural candidates for
-the q-aware score, raw projection, and a last-release control. Report AUC and
-calibrated low-FPR detection together with realized FPR, plus candidate
-gallery rank with same-class controls. The primary endpoint is whether the
-observed detection curves follow the predicted \(q\sqrt T/\sigma\) exposure
-scale and where they become operationally useful. Keep the training sampler,
-adjacency definition, and accountant explicit. Do not call gallery selection
-unknown-image reconstruction.
+An 80-identity exact evolving-model replication now extends the horizon to
+256 rounds at sigma 4. The q-aware score's AUC from T=16 to T=256 is
+0.633 to 0.843 at q=0.5, 0.572 to 0.696 at q=0.25, and 0.530 to 0.589
+at q=0.1. Paired identity-bootstrap intervals for all three length gains
+are above zero. On the same 80 identities and one matched sequence each,
+the T=256 AUC at q=0.5 is 0.910, 0.843, and 0.737 for sigma 2, 4, and 8.
+Both adjacent paired noise contrasts have intervals above zero in the
+expected direction: **more noise weakens detection at fixed exposure**.
+The [complete report](../reports/canary_first_principles_holdout/README.md)
+contains the figure, CSVs, intervals, and protocol caveats.
+
+The remaining usability questions are calibrated low-FPR detection and
+candidate-gallery identity ranking on this same held-out regime, with
+same-class and mismatched-background controls. An equal-access projection
+remains the algorithmic control. These are distinct from the now-replicated
+trajectory-accumulation hypothesis; none should be described as unknown-image
+reconstruction or an empirical DP lower bound without the required audit
+protocol.
 
 Source results: [long-trajectory audit](../reports/canary_long_sigma4/README.md),
 [q-sensitivity](../reports/canary_q_sensitivity/README.md),

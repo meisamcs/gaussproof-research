@@ -1,4 +1,7 @@
 import unittest
+import csv
+import tempfile
+from pathlib import Path
 
 import numpy as np
 
@@ -37,6 +40,29 @@ class CanaryQSensitivityTests(unittest.TestCase):
         self.assertEqual(result[0]["endpoint_neg_loss"], -2.0)
         self.assertEqual(result[1]["endpoint_neg_loss"], -.5)
         self.assertEqual(result[0]["endpoint_confidence"], .2)
+
+    def test_resume_accepts_only_complete_q_arms(self):
+        from gaussproof.canary_q_sensitivity import load_completed_q_rows
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "scores.csv"
+            row = dict(q=0.5, sigma=4.0, canary=7, digit=1, label=0,
+                       sequence=0, inclusion_rate=0.0, steps=16,
+                       sequence_llr=0.1, mixture_llr=0.2,
+                       endpoint_neg_loss=-1.0, endpoint_confidence=0.4)
+            rows = [dict(row, label=label, steps=step)
+                    for label in (0, 1) for step in (16, 32)]
+            with path.open("w", newline="") as stream:
+                writer = csv.DictWriter(stream, fieldnames=list(row))
+                writer.writeheader(); writer.writerows(rows)
+            recovered, completed = load_completed_q_rows(
+                path, [0.5, 0.1], [16, 32], [7], 4.0, 1)
+            self.assertEqual(len(recovered), 4)
+            self.assertEqual(completed, {0.5})
+            with path.open("w", newline="") as stream:
+                writer = csv.DictWriter(stream, fieldnames=list(row))
+                writer.writeheader(); writer.writerows(rows[:-1])
+            with self.assertRaisesRegex(ValueError, "incomplete"):
+                load_completed_q_rows(path, [0.5, 0.1], [16, 32], [7], 4.0, 1)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,16 @@
+q,steps,method,auc,auc_ci_low,auc_ci_high,expected_inclusions,probability_at_least_one,bootstrap_repetitions,bootstrap_unit
+0.5,16,mixture_llr,0.57296875,0.56140625,0.5975078125,8.0,0.9999847412109375,2000,identity and paired sequence index
+0.5,16,endpoint_neg_loss,0.56109375,0.55234375,0.5835937499999999,8.0,0.9999847412109375,2000,identity and paired sequence index
+0.5,16,endpoint_confidence,0.56109375,0.55234375,0.5835937499999999,8.0,0.9999847412109375,2000,identity and paired sequence index
+0.5,32,mixture_llr,0.58859375,0.5765625,0.6120390625,16.0,0.9999999997671694,2000,identity and paired sequence index
+0.5,32,endpoint_neg_loss,0.56828125,0.5584375,0.59046875,16.0,0.9999999997671694,2000,identity and paired sequence index
+0.5,32,endpoint_confidence,0.56828125,0.5584375,0.59046875,16.0,0.9999999997671694,2000,identity and paired sequence index
+0.5,64,mixture_llr,0.6307812500000001,0.605625,0.66546875,32.0,1.0,2000,identity and paired sequence index
+0.5,64,endpoint_neg_loss,0.57828125,0.55530078125,0.61375390625,32.0,1.0,2000,identity and paired sequence index
+0.5,64,endpoint_confidence,0.57828125,0.55530078125,0.61375390625,32.0,1.0,2000,identity and paired sequence index
+0.5,128,mixture_llr,0.6665625,0.63109375,0.7129765625,64.0,1.0,2000,identity and paired sequence index
+0.5,128,endpoint_neg_loss,0.5862499999999999,0.56140234375,0.6189062500000001,64.0,1.0,2000,identity and paired sequence index
+0.5,128,endpoint_confidence,0.5862499999999999,0.56140234375,0.6189062500000001,64.0,1.0,2000,identity and paired sequence index
+0.5,256,mixture_llr,0.7370312500000001,0.6890546875,0.78906640625,128.0,1.0,2000,identity and paired sequence index
+0.5,256,endpoint_neg_loss,0.61875,0.58015625,0.6642226562500001,128.0,1.0,2000,identity and paired sequence index
+0.5,256,endpoint_confidence,0.61875,0.58015625,0.6642226562500001,128.0,1.0,2000,identity and paired sequence index

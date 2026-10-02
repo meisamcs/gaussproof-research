@@ -1,0 +1,11 @@
+{
+  "sigma": 2.0,
+  "q_values": [0.5],
+  "prefix_steps": [16, 32, 64, 128, 256],
+  "identity_offset_per_class": 2,
+  "identities_per_class": 8,
+  "sequences_per_identity": 1,
+  "bootstrap_repetitions": 2000,
+  "seed": 20261011,
+  "bootstrap_seed": 20261014
+}
