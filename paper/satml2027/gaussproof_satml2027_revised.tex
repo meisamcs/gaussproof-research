@@ -9,8 +9,6 @@
 \usepackage{url}
 \usepackage{xcolor}
 \usepackage[hidelinks]{hyperref}
-\usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,calc,fit}
 
 \newcommand{\method}{\textsc{GaussProof}}
 \newcommand{\clip}{\operatorname{clip}}
@@ -27,7 +25,7 @@
 \maketitle
 
 \begin{abstract}
-Differentially private stochastic gradient descent (DP-SGD) adds Gaussian noise to clipped minibatch gradients, and formal accounting composes privacy loss over training. Empirical privacy evaluations, however, often inspect a final model or a short observation window. We study a white-box setting in which an observer sees repeated noisy gradients and model states and knows the gradient fingerprint of a candidate record, but not its hidden batch participation. We introduce \method, a trajectory audit that updates the candidate fingerprint at each checkpoint and accumulates Gaussian likelihood evidence across releases. A controlled analysis shows that increasing noise reduces detection at fixed exposure, whereas repeated evidence can strengthen detection when participation is frequent. On exact evolving MNIST CNN trajectories with noise multiplier four and per-round participation $q=0.5$, holdout AUC rises from 0.609 at 16 releases to 0.819 at 128. A separate 20-identity sensitivity study at 128 releases gives trajectory AUCs of 0.805, 0.571, 0.531, and 0.503 for $q=0.5,0.1,0.02,0.004$; a final-checkpoint candidate-loss attack gives 0.730, 0.549, 0.517, and 0.498. Thus the strong pilot effect depends on repeated participation and is not detectable within 128 rounds at the ordinary-sampling proxy $q=0.004$. Learned BiLSTM and diffusion detectors do not improve the high-noise analytic score, and background-distribution mismatch can create class-level confounds that resemble reconstruction. These findings do not show that more noise reduces privacy or that unknown images can be synthesized. They show that per-release noise must be interpreted together with participation, trajectory exposure, composition, auxiliary fingerprints, and the release interface.
+Differentially private stochastic gradient descent (DP-SGD) hides individual clipped gradients in noisy minibatch releases, but privacy accounting must cover the complete release sequence. We study a passive white-box observer who sees each noisy update and model state and knows a candidate record, but not its hidden participation times. \method\ recomputes the candidate's clipped gradient at every checkpoint and accumulates a background-adjusted Gaussian-mixture score. On exact evolving MNIST CNN trajectories at noise multiplier $\sigma=4$, an 80-identity holdout at participation probability $q=0.5$ rises from AUC 0.633 at 16 releases to 0.843 at 256; at $q=0.1$, it rises only from 0.530 to 0.589. A matched-identity noise check falls from AUC 0.910 to 0.737 as $\sigma$ rises from 2 to 8 at 256 releases. At an ordinary-sampling proxy $q=0.004$, a separate 20-identity study remains at chance after 128 releases. The 256-release condition has a large conservative privacy upper bound and has not passed low-FPR calibration. On useful final models at 128 releases, LiRA and a same-access Nasr-style projection match the trajectory score; the latter is therefore not a new projection primitive or an empirical DP lower bound. A known-gallery test yields modest record linkage, with distribution confounds, but does not reconstruct unknown images. These findings locate a participation- and interface-dependent audit boundary rather than a noise-backfire effect.
 \end{abstract}
 
 
@@ -35,34 +33,25 @@ Differentially private stochastic gradient descent (DP-SGD) adds Gaussian noise 
 
 Differential privacy (DP) is designed to remain valid against arbitrary post-processing and auxiliary information~\cite{dwork2006calibrating,dwork2014algorithmic}. DP-SGD applies this principle to iterative learning: it clips each per-record gradient, aggregates a minibatch, adds Gaussian noise, and composes the privacy loss of all updates~\cite{abadi2016deep}. The formal guarantee therefore already accounts for a powerful observer who combines every permitted release. In practice, however, empirical discussions of gradient leakage often present one update, one reconstruction, or one final model. A large noise multiplier can make those isolated observations look harmless even when the system exposes a long sequence of correlated, data-dependent updates.
 
-This paper asks a concrete safety question: \emph{can a weak record-specific gradient signal, hidden by high noise in a short window, become useful when the same observer follows an entire DP-SGD trajectory?} The question matters for federated learning servers, distributed training infrastructure, debugging and telemetry systems, and APIs that reveal intermediate checkpoints or optimizer updates. These interfaces can be white-box even when the eventual model release is black-box. Prior DP audits have shown that observing all model updates is a meaningful and formally permitted threat model~\cite{nasr2023tight}; our focus is the mechanism by which a natural record's changing gradient fingerprint persists across those updates.
+This paper asks a concrete safety question: \emph{can a weak record-specific gradient signal, hidden by high noise in a short window, become useful when the same observer follows an entire DP-SGD trajectory?} The question matters for federated learning servers, distributed training infrastructure, debugging and telemetry systems, and APIs that reveal intermediate checkpoints or optimizer updates. These interfaces can be white-box even when the eventual model release is black-box. Nasr et al.\ already exploit full-update access and a canary-gradient projection in tight DP audits~\cite{nasr2023tight}; our narrower question is how that signal behaves for a fixed, uncrafted natural record with hidden, varying participation.
 
 We call the resulting audit \method. For a specified candidate record, the observer recomputes its clipped per-record gradient at every public checkpoint, subtracts a public estimate of the minibatch background, evaluates a Gaussian shift likelihood against the released update, and adds evidence through time. The detector does not see the private batch, the sampled Gaussian noise, or the candidate's hidden inclusion schedule. Its computation is a matched filter over a time-varying fingerprint bank. This simple construction is important: in the high-noise regime, our learned sequence models and diffusion denoisers do not outperform the analytic likelihood score.
 
-Figure~\ref{fig:framework} summarizes the audit. The method makes a stronger access assumption than final-model membership inference: the observer has model states, gradient releases, and a candidate record. We therefore report it as a white-box trajectory audit rather than as a universal attack on deployed DP-SGD. The access is realistic only where intermediate updates are exposed or where an internal participant is adversarial.
+Figure~\ref{fig:system-adversary} makes the information boundary explicit. The method assumes more access than final-model membership inference: the observer has model states, noisy updates, and a candidate record. We therefore report it as a white-box trajectory audit. This interface applies where intermediate updates are exposed or an internal participant can observe them.
 
-\begin{figure*}[t]
-  \centering
-  \resizebox{\textwidth}{!}{%
-    \input{figures/Fig1.tex}
-  }
-  \caption{\method~follows an evolving DP-SGD trajectory. At round $t$, the observer uses the public checkpoint $\theta_t$, released update $y_t$, public reference data $D_{\mathrm{pub}}$, and candidate record $z$ to form a public background estimate $b_t$, a candidate-specific clipped gradient fingerprint $h_t$, a per-round likelihood ratio $\ell_t$, and an accumulated trajectory score $M_T$. The observer never receives the private batch, hidden inclusion schedule, or sampled Gaussian noise.}
-  \label{fig:framework}
-\end{figure*}
-
-Our evaluation is deliberately staged. First, a fixed-access Gaussian study holds fingerprints and hypotheses constant and confirms that more noise reduces optimal detection at fixed exposure. Second, exact evolving CNN experiments separate calibration and holdout canary identities and compare the last released update with 16-release trajectories at three noise multipliers. Third, we fix the hardest tested noise multiplier, $\sigma=4$, and extend the same paired trajectories from 16 to 128 releases. Fourth, we vary $q$ from 0.5 to 0.004 on 20 unseen identities and compare trajectory access with a true final-checkpoint attack. Finally, we translate detection evidence into exact record recovery from an auxiliary gallery and vary the private class distribution.
+Our evaluation is staged. A fixed-access Gaussian study checks noise monotonicity. Exact evolving CNN experiments then compare short and long trajectories, participation rates, a genuine final-checkpoint attack, and strong final-model LiRA/RMIA baselines. A separate run on the same 80-identity holdout block extends the $q$ and $\sigma$ checks to 256 releases. Finally, a closed-gallery study tests record linkage and distribution confounds.
 
 The main findings are:
 \begin{itemize}
-  \item At fixed 16-round exposure, increasing $\sigma$ from 0.25 to 4 lowers unseen-canary AUC from 0.929 to 0.609. This is consistent with the DP mechanism and rules out the claim that noise intrinsically ``backfires.''
-  \item At fixed $\sigma=4$, extending the same trajectories from 16 to 128 releases raises AUC from 0.609 to 0.819. The paired gain is 0.211 with a 95\% identity-clustered bootstrap interval $[0.144,0.272]$.
+  \item In the initial four-identity holdout, increasing $\sigma$ from 0.25 to 4 lowers 16-release AUC from 0.929 to 0.609, while extending the $\sigma=4$ trajectories to 128 releases raises AUC to 0.819. More noise does not intrinsically ``backfire''; more releases spend more privacy budget.
+  \item The 80-identity replication extends this effect to 256 releases: at $q=0.5$, AUC rises from 0.633 to 0.843, with paired gain $0.210\,[0.165,0.250]$. At $q=0.25$ and $q=0.1$, 256-release AUC falls to 0.696 and 0.589. At fixed $q=0.5,T=256$, increasing $\sigma$ from 2 to 8 lowers matched-identity AUC from 0.910 to 0.737.
   \item The effect attenuates sharply with participation. At 128 releases, the $q$-aware trajectory AUC is 0.805 at $q=0.5$, 0.571 at $q=0.1$, and 0.503 at $q=0.004$. A final-checkpoint loss attack reaches 0.730, 0.549, and 0.498, respectively; the measured trajectory advantage is not statistically clear in this pilot.
+  \item In the 80-identity replication at $q=0.5,T=128$, trajectory AUC is 0.810 versus final-model LiRA's 0.693 when model accuracy is only 24\%. At a calibration-selected, higher-utility learning rate with 66\% accuracy, the trajectory reaches 0.818 but LiRA reaches 0.830; the paired difference interval $[-0.043,0.020]$ includes zero. A Nasr-style raw gradient projection reaches 0.831, so the new score does not improve on the established same-access primitive in this condition.
   \item A BiLSTM and conditional diffusion detector do not improve high-noise AUC: they reach 0.610 and 0.566, respectively, versus 0.609 for the analytic score. In this pilot, the privacy signal is better exposed by accumulation than by a more expressive learned denoiser.
-  \item From a 32-image gallery, the correct held-out MNIST record is ranked first in 15--30\% of trials across four matched-background distributions, versus 3.1\% at random. With the target removed, only limited semantic leakage remains; this is candidate re-identification, not unknown-image synthesis.
-  \item A mismatched public background can expose the dominant class while failing to distinguish individuals within that class. We introduce a same-class rank control to identify this failure mode.
+  \item In a 30-identity replication with a 32-image gallery, the correct held-out MNIST record is ranked first in 13--15\% of trials across four matched-background distributions, versus 3.1\% at random. Removing the target leaves limited semantic leakage; a mismatched public background can reveal class while failing to distinguish individuals within that class. We report same-class rank to identify this confound.
 \end{itemize}
 
-These results do not contradict DP. Our conservative replace-one accounting without sampling amplification gives $\epsilon\leq 11.60$ at 16 rounds and $\epsilon\leq 43.14$ at 128 rounds for $\delta=10^{-5}$, so the evaluated long-trajectory setting is a weak-privacy regime. The security lesson is that a large per-release noise multiplier is not a stand-alone privacy statement. Release count, sampling, the observer's interface, and composition determine the guarantee and must also determine the audit.
+These results do not contradict DP. Our conservative replace-one accounting without sampling amplification gives $\epsilon\leq 43.14$ at 128 rounds and $\epsilon\leq 70.39$ at 256 rounds for $\sigma=4,\delta=10^{-5}$; the long-trajectory condition is a weak-privacy regime. A large per-release noise multiplier is not an end-to-end privacy statement. Release count, sampling, observation interface, and composition determine the guarantee and must also determine the audit.
 
 \section{Background and Related Work}
 
@@ -93,11 +82,11 @@ We report this loose no-amplification bound to make exposure explicit. It is not
 
 \subsection{Membership Inference and DP Auditing}
 
-Membership inference asks whether a record contributed to training. Output confidence and shadow models are classic black-box approaches \cite{shokri2017membership}; likelihood-ratio attacks make the hypothesis test explicit and improve power~\cite{carlini2022membership,zarifzadeh2024lowcost}. DP auditing instead uses attacks to estimate or falsify an implementation's privacy behavior. Poisoning-based and influence-based audits improve statistical power~\cite{jagielski2020auditing,lu2022general}, while update-level access can produce tight audits on natural data with few training runs \cite{nasr2023tight}. Randomized canaries and one-run methods further reduce the cost of obtaining valid empirical lower bounds \cite{pillutla2023randomization,steinke2023one}. Black-box audits can also become nearly tight under carefully designed initializations~\cite{annamalai2024blackbox}.
+Membership inference asks whether a record contributed to training. Output confidence and shadow models are classic black-box approaches \cite{shokri2017membership}; likelihood-ratio attacks make the hypothesis test explicit and improve power~\cite{carlini2022membership,zarifzadeh2024lowcost}. DP auditing instead uses attacks to estimate or falsify an implementation's privacy behavior. Poisoning-based and influence-based audits improve statistical power~\cite{jagielski2020auditing,lu2022general}. Nasr et al.\ study white-box DP-SGD with access to every privatized update and model state; their auditor inserts either a directly chosen gradient canary or an input-space canary and projects each noisy update onto its gradient~\cite{nasr2023tight}. They use mechanism-specific f-DP/PLD inference to obtain empirical privacy lower bounds and show tight audits on natural training datasets. Thus full-update access, dynamic canary gradients, and per-update gradient projection are established prior art. Randomized canaries and one-run methods further reduce the cost of obtaining valid empirical lower bounds \cite{pillutla2023randomization,steinke2023one}. Black-box audits can also become nearly tight under carefully designed initializations~\cite{annamalai2024blackbox}.
 
 Prior work also studies privacy when multiple training states are available. Jagielski et al.~\cite{jagielski2023updates} combine membership evidence across updated models and show that access to model updates can strengthen membership inference. Cherubin et al.~\cite{cherubin2024closed} model DP-SGD as an information-theoretic channel whose outputs include intermediate model parameters and derive closed-form record-level inference bounds. Separately, privacy-amplification-by-iteration analyses show that concealing intermediate states can, under additional assumptions, yield tighter guarantees than composition bounds that remain valid when those states are exposed \cite{feldman2018iteration,ye2022hidden}. These results motivate treating the release interface itself as part of the privacy threat model.
 
-Our goal differs from estimating a tight empirical $\epsilon$ or deriving a new composition law. We construct a candidate-conditioned, time-varying likelihood on exact evolving white-box DP-SGD trajectories with hidden per-round participation, test transfer to unseen natural candidates, and use identity-aware gallery controls to distinguish record linkage from class- or distribution-level leakage. Consequently, our results quantify attack discrimination under the stated distribution rather than certify a general privacy lower bound.
+Our goal differs from estimating a tight empirical $\epsilon$ or deriving a new composition law. We instantiate the established white-box projection idea for an \emph{unchanged, ordinary candidate record} whose inclusion times are hidden, model its specified participation probability in a Gaussian-mixture score, test transfer to unseen candidate identities, and use identity-aware gallery controls to distinguish record linkage from class- or distribution-level leakage. Unlike Nasr et al.'s strongest audits, we cannot inject a crafted gradient or adapt the candidate input at each step. Our results quantify discrimination averaged over the sampled natural candidates; they neither improve on Nasr et al.'s audit nor certify a privacy lower bound.
 
 \subsection{Gradient Reconstruction and Learned Priors}
 
@@ -113,7 +102,21 @@ We consider a training service that exposes the sequence $\{(\theta_t,y_t)\}_{t=
 
 The observer may train on disjoint public data and use it to estimate the mean gradient of an ordinary batch. It cannot read the private population, batch membership, candidate inclusion indicator $a_t$, or sampled noise $n_t$. It cannot change the training data or gradients. We therefore study a passive white-box observer with auxiliary fingerprints.
 
-The candidate can be either absent at all rounds ($H_0$) or eligible for independent inclusion with probability $q$ at each round ($H_1$). This participation schedule is deliberately controlled by the experiment and need not match the inclusion probability of an ordinary record under uniform minibatch sampling. The evolving model makes the candidate fingerprint time-dependent. The primary membership task ranks a trajectory under $H_1$ versus $H_0$. The gallery task ranks multiple known candidates. In both cases, the private observation is unchanged; candidate fingerprints are recomputed from public states.
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=.98\textwidth]{figures/system_adversary_model.pdf}
+  \caption{System and passive adversary model. The trainer clips private-record gradients, adds Gaussian noise to their batch average, and exposes the noisy update $y_t$ and checkpoint $\theta_t$ each round. The observer knows candidate $z$ and disjoint public reference data but not the batch, inclusion bits, or noise draws. It recomputes the candidate fingerprint and public background at each visible checkpoint, then accumulates candidate-conditioned evidence. The figure omits score details given in Eqs.~\ref{eq:shift}--\ref{eq:trajectory}.}
+  \label{fig:system-adversary}
+\end{figure*}
+
+The candidate can be absent at all rounds ($H_0$) or eligible for independent inclusion with probability $q$ at each round ($H_1$):
+\begin{equation}
+H_0:a_t=0\quad\forall t,
+\qquad
+H_1:a_t\overset{\mathrm{iid}}{\sim}\operatorname{Bernoulli}(q).
+\label{eq:system-hypotheses}
+\end{equation}
+This participation schedule is deliberately controlled by the experiment and need not match the inclusion probability of an ordinary record under uniform minibatch sampling. The evolving model makes the candidate fingerprint time-dependent. The primary membership task tests the two hypotheses from the trajectory; the gallery task ranks multiple known candidates. In both cases, the private observation is unchanged and candidate fingerprints are recomputed from visible states.
 
 \subsection{Scope of the Audit}
 
@@ -160,6 +163,8 @@ M_T=\sum_{t=1}^{T}m_t.
 \end{equation}
 We refer to the overall candidate-conditioned trajectory audit as \method. Its $q$-aware likelihood score is $M_T$; we additionally report $L_T=\sum_t\ell_t$ as a simpler matched-score control. The two scores are similar empirically at $q=0.5$. For a gallery $\{z_j\}_{j=1}^K$, the observer recomputes every $h_{j,t}$ and returns $\arg\max_j M_T(z_j)$. The work is $O(TKd)$ for $d$ observed gradient coordinates and requires only streaming state $O(K)$ once each checkpoint's fingerprints are computed.
 
+Nasr et al.'s white-box score projects a privatized update onto the canary gradient~\cite{nasr2023tight}. When the background mean is zero and the fingerprint norm is fixed, Eq.~\ref{eq:llr} is an affine transformation of that same projection for a known Gaussian shift; Eq.~\ref{eq:mixture} applies the standard Bernoulli-inclusion mixture. We therefore report raw $\sum_t\langle h_t,y_t\rangle$ on identical trajectories as a Nasr-style projection \emph{control}, not as a reproduction of their complete f-DP audit. Public-background subtraction, estimated rather than known batch statistics, and evolving model states make the Gaussian-mixture score an attack approximation rather than an exact privacy-loss random variable for our full training mechanism.
+
 The model state itself depends on earlier private batches and noise. We do not freeze or replay checkpoints in the main trajectory experiments: fingerprints, backgrounds, releases, and updates are computed at the same evolving $\theta_t$. This preserves the temporal coupling that a real observer faces.
 
 \subsection{Signal Accumulation Across High-Noise Releases}
@@ -182,6 +187,25 @@ For approximately stationary fingerprint energy, $\mu=\Theta(\sqrt{T}/\sigma)$. 
 \end{equation}
 Equation~\ref{eq:power} resolves the apparent paradox. Holding $T$ fixed, increasing $\sigma$ lowers $\mu$ and detection power monotonically. Holding $\sigma$ fixed, adding independent releases with nonzero fingerprint energy increases $\mu$. The same dependence appears in privacy composition: exposure increases with $T/\sigma^2$. There is no reversal of DP's privacy ordering. This accumulation viewpoint is also consistent with prior record-level analyses that treat intermediate DP-SGD states as outputs of an information-theoretic channel~\cite{cherubin2024closed}.
 
+Hidden participation adds a second attenuation factor. In the fixed Gaussian
+channel above, let $P_{0,t}=\Normal(0,vI)$ and
+$P_{1,t}=(1-q)P_{0,t}+q\Normal(s_t,vI)$, with
+$\kappa_t=\lVert s_t\rVert_2^2/v$. Direct integration of the Gaussian
+likelihood ratio gives
+\begin{equation}
+\chi^2(P_{1,t}\Vert P_{0,t})=q^2\bigl(e^{\kappa_t}-1\bigr).
+\label{eq:participation-chi2}
+\end{equation}
+For independent rounds, $1+\chi^2(P_1\Vert P_0)$ is the product of
+$1+q^2(e^{\kappa_t}-1)$ over $t$. Consequently, when every $\kappa_t$ is
+small, the distinguishability scale is approximately
+$q\sqrt{\sum_t\kappa_t}$, or $q\sqrt{T}/\sigma$ for comparable
+fingerprint energy. This is a diagnostic calculation for the fixed-background
+Gaussian channel, not a privacy accountant or a bound asserted for adaptive
+CNN training. It explains why large per-release noise and short exposure can
+mask an infrequently participating record even when a high-$q$ canary remains
+detectable over a long trajectory.
+
 This calculation is a Gaussian hypothesis-testing specialization, not a new DP theorem or composition result. Real trajectories violate its fixed-background and conditional-independence approximations through minibatch variation and model evolution. Our exact training experiments test whether the operational candidate-conditioned detector retains the accumulation effect under those deviations.
 
 \subsection{Learned Sequence Baselines}
@@ -196,7 +220,7 @@ The diffusion control treats the hidden inclusion indicators $a_{1:T}\in\{0,1\}^
 
 We use MNIST~\cite{lecun1998gradient} because exact per-record gradients for every parameter can be recomputed over many evolving trajectories on CPU. The model has two convolutional layers with 4 and 8 channels, $3\times3$ kernels, tanh activations and average pooling, followed by a 32-unit tanh layer and a 10-class head. Every attack gradient covers all model parameters.
 
-One random permutation creates disjoint roles: 3,000 public pretraining records, 64 public background records, four calibration canaries, four holdout canaries, a 2,000-record private population, and 1,000 held-out records. The CNN is publicly pretrained for 100 nonprivate steps with batch size 64 and learning rate 0.1. The audit then starts from the identical public checkpoint for every paired condition. The participation-rate study selects the first two records of each digit from the persisted held-out role, giving 20 fixed identities; none is used in public pretraining, background estimation, or the private population. The gallery experiment draws a separate stratified 32-image gallery from the same held-out role; its first ten records, one per digit, act as the possible private contributors.
+One random permutation creates disjoint roles: 3,000 public pretraining records, 64 public background records, four calibration canaries, four holdout canaries, a 2,000-record private population, and 1,000 held-out records. The CNN is publicly pretrained for 100 nonprivate steps with batch size 64 and learning rate 0.1. The audit then starts from the identical public checkpoint for every paired condition. The participation-rate study selects the first two records of each digit from the persisted held-out role, giving 20 fixed identities; none is used in public pretraining, background estimation, or the private population. The gallery experiment draws a separate stratified 32-image gallery from the same held-out role; its first ten records, one per digit, act as the possible private contributors in the pilot, while a replication evaluates three records per digit (30 identities) with the same 32-image gallery.
 
 Table~\ref{tab:setup} gives the audited DP-SGD configuration. The primary canaries are ordinary held-out MNIST records drawn from the same data distribution and subjected to the same clipping rule as population records. Their participation schedule is deliberately controlled: each positive trajectory includes its canary independently with probability $q$, whereas each negative trajectory excludes it. The primary study uses $q=0.5$; the sensitivity study adds $q\in\{0.1,0.02,0.004\}$, where 0.004 is approximately $B/N=8/2000$ under uniform fixed-size minibatch sampling. Other batch records are sampled without replacement from the private population. The release in Eq.~\ref{eq:dpsgd} is exactly the gradient used for the model update. Separate random generators control inclusion, batch sampling, and Gaussian noise. Shared seeds make every lower-$q$ inclusion schedule a subset of its paired higher-$q$ schedule.
 
@@ -233,15 +257,23 @@ Privacy $\delta$ & $10^{-5}$ \\
 
 \emph{Long high-noise trajectories.} At $\sigma=4$, we extend the exact same paired holdout sequences to 128 rounds and score nested prefixes of 16, 32, 64, and 128 releases. No prefix is simulated independently, which avoids confounding the comparison with independently sampled easier or harder trajectories. Longer prefixes nevertheless contain additional DP-SGD steps and therefore additional privacy expenditure; this experiment does not hold the overall privacy budget fixed.
 
+\emph{Larger first-principles replication.} A separate fixed-design run uses 80 stratified natural identities, disjoint from the original four canaries and the 20-identity $q$ pilot. These are the same fixed identity block used for evaluation in the stronger endpoint replication below, but the trajectories and seeds are separate; the two 80-identity studies are not independent identity samples. With $C=1$, $B=8$, $\eta=0.05$, and $\sigma=4$, this run uses two paired IN/OUT sequences per identity for $q\in\{0.5,0.25,0.1\}$ and scores nested prefixes $T\in\{16,32,64,128,256\}$, for 960 full trajectories. Shared seeds give nested inclusion schedules across $q$. A matched noise check runs one sequence per identity at $q=0.5$ and $\sigma\in\{2,4,8\}$; its $\sigma=4$ arm uses the same one-sequence subset as the other two arms. This design varies exposure and participation separately from the noise multiplier and does not hold the total DP budget fixed when $T$ changes.
+
 \emph{Participation sensitivity and endpoint.} At $\sigma=4$, we run $q\in\{0.5,0.1,0.02,0.004\}$ on 20 stratified unseen identities with three paired positive and negative sequences per identity. We score the same prefixes as above. The trajectory detector uses the correct $q$ in Eq.~\ref{eq:mixture}. Its endpoint comparator is the negative cross-entropy of the known candidate under the model after step $T$; it receives only that final checkpoint and candidate, not the last update or any intermediate state. This produces 480 exact trajectories. The inclusion RNG is separate, and shared seeds make lower-$q$ schedules nested within higher-$q$ schedules.
+
+\emph{Stronger endpoint replication.} We select 100 stratified identities from the held-out split: 20 (two per digit) for attack calibration, and 80 previously unevaluated identities (eight per digit) for final comparison. Each identity has one paired positive and negative trajectory at $q\in\{0.5,0.1\}$; the 64- and 128-update scores use prefixes of the same run. Thirty-two OUT reference models are trained with the same DP-SGD mechanism on a separate 2,000-record public MNIST pool. A further disjoint set of 128 public records provides RMIA's population comparison. We compute offline LiRA with a Gaussian OUT-logit score or one-sided standardized OUT logit, and offline RMIA~\cite{carlini2022membership,zarifzadeh2024lowcost} with $a\in\{0,0.5,1\}$ and $\gamma\in\{1,1.05\}$. The 20 calibration identities select variants; no holdout labels fit the attacks. Endpoint attacks see only the final model, candidate, and public reference predictions. Full-trajectory scores see all released updates and checkpoints. We also report raw candidate-gradient alignment as a same-access Nasr-style projection control; it reproduces the projection primitive but neither Nasr et al.'s canary-crafting and f-DP lower-bound procedure nor RERO's informed reconstruction algorithm. A 20-identity calibration-only screen over learning rates $\{0.005,0.01,0.02,0.05\}$ selected $0.005$ to test whether the endpoint comparison persists when model utility improves. This follow-up rate is exploratory, while the 80 evaluation identities remain untouched by selection.
 
 \emph{Learned comparison.} Fourfold identity cross-fitting trains the BiLSTM and diffusion detector without the evaluated identity. Model selection uses calibration identities. Analytic and learned scores receive identical sequence features and are evaluated on the same 16-round holdout trajectories.
 
-\emph{Gallery and distribution shift.} We run two trajectories for each of ten true gallery identities under four private label distributions: balanced, long-tail with probability proportional to $1/(k+1)$ for digit $k$, canary class rare with probability 0.05, and canary class dominant with probability 0.70. Paired noise seeds are shared across distributions. The primary background model matches the private class distribution; a robustness model remains balanced. All gallery candidates are available under both hypotheses.
+\emph{Gallery and distribution shift.} The pilot runs two trajectories for each of ten true gallery identities. We replicate with 30 identities, three per digit, and two trajectories each under four private label distributions: balanced, long-tail with probability proportional to $1/(k+1)$ for digit $k$, canary class rare with probability 0.05, and canary class dominant with probability 0.70. The replication therefore contains 240 exact trajectories. Paired noise seeds are shared across distributions. The primary background model matches the private class distribution; a robustness model remains balanced. All gallery candidates are available under both hypotheses.
 
 \subsection{Metrics and Uncertainty}
 
-Membership detection uses tie-aware ROC AUC. Low-FPR results report the realized holdout TPR and FPR at calibration-selected thresholds. For both trajectory studies, 2,000 paired cluster-bootstrap repetitions resample canary identities and positive/negative sequence indices together. The original long-trajectory study has four identities; the participation study increases this to 20 while reducing repetitions per identity from 12 to three.
+Membership detection uses tie-aware ROC AUC. Low-FPR results report the realized holdout TPR and FPR at calibration-selected thresholds. For the original holdout and participation pilot, 2,000 paired cluster-bootstrap repetitions resample canary identities and positive/negative sequence indices together. The original long-trajectory study has four identities; the participation pilot increases this to 20 while reducing repetitions per identity from 12 to three.
+
+The 80-identity replication also uses 2,000 paired identity-bootstrap repetitions. Its independent threshold calibration on only 20 negative pilot identities has five-percentage-point FPR resolution. The nominal 5\% threshold yields realized 10--12\% FPR on the 80-identity holdout at 256 releases; consequently we report AUC but do not call the resulting TPR a validated TPR-at-5\%-FPR point.
+
+The stronger endpoint replication uses 1,000 paired identity-bootstrap samples of its 80 holdout identities. Its 20 negative calibration identities resolve a nominal 5\% FPR threshold only coarsely; we report achieved holdout FPR beside TPR and make no calibrated 1\% FPR claim. Public-query classification accuracy is measured on the disjoint 128-record RMIA population to expose low-utility comparisons.
 
 Gallery evaluation reports exact top-1, top-5, mean reciprocal rank, predicted digit agreement, and same-class top-1. Same-class rank restricts candidates to the true digit, separating identity evidence from class recognition. An open-gallery control removes the true image before selecting the best alternative, then reports digit agreement and pixel MSE. With 32 candidates, random top-1 is 3.125\%, top-5 is 15.625\%, and expected random MRR is 0.127. An oracle that knows only the digit and guesses within its class has 31.7\% expected exact top-1 for this gallery.
 
@@ -283,6 +315,19 @@ Figure~\ref{fig:long} shows the main result. At $\sigma=4$, sum-LLR AUC rises fr
 
 Privacy exposure increases at the same time. Under the conservative replace-one zCDP calculation in Eq.~\ref{eq:zcdp}, the upper bound moves from $\epsilon=11.60$ at 16 releases to 17.57, 27.19, and 43.14 at 32, 64, and 128 releases. This comparison is not ``same privacy, longer observation''; each additional release spends privacy budget. The experiment demonstrates that an apparently weak short-window attack is not evidence that continued exposure is safe.
 
+\subsection{Replication Separates Participation, Exposure, and Noise}
+
+Figure~\ref{fig:fingerprint-signal} repeats the central check on 80 identities disjoint from the earlier small pilots. With two paired IN/OUT sequences per identity at $\sigma=4$, the $q=0.5$ trajectory rises from AUC 0.633 at 16 releases to 0.843 $[0.808,0.884]$ at 256; the paired gain is $0.210\,[0.165,0.250]$. The corresponding 256-release AUCs are 0.696 $[0.665,0.734]$ at $q=0.25$ and 0.589 $[0.568,0.618]$ at $q=0.1$, with gains from 16 releases of $0.124\,[0.087,0.163]$ and $0.059\,[0.036,0.084]$. This is a graded participation effect, not evidence about ordinary-record sampling. The $\eta=0.05$ condition produced low final-model utility in the earlier endpoint study, and no equal-access projection advantage has been established at 256 releases; the extension confirms signal accumulation, not superiority over a useful endpoint or an established white-box auditor.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=.96\textwidth]{figures/fingerprint_signal_holdout.pdf}
+  \caption{Separate 80-identity trajectory runs on exact evolving CNNs; the identity block is shared with the endpoint replication, but the trajectories and seeds differ. (a) Increasing exposure helps most when inclusion is frequent, at fixed $\sigma=4$. (b) Increasing noise reduces AUC at fixed $q=0.5$. To pair all noise arms, both plotted panels use the same one-sequence-per-identity subset; the main $q$ point estimates and intervals in the text use both available $\sigma=4$ sequences. Shaded bands are paired identity-bootstrap intervals.}
+  \label{fig:fingerprint-signal}
+\end{figure*}
+
+Holding $q=0.5$ and $T=256$ fixed on the matched one-sequence subset, AUC is 0.910 $[0.879,0.945]$ at $\sigma=2$, 0.843 $[0.800,0.892]$ at $\sigma=4$, and 0.737 $[0.694,0.787]$ at $\sigma=8$. The paired $\sigma=2$ minus 4 difference is $0.067\,[0.033,0.102]$ and the 4 minus 8 difference is $0.106\,[0.039,0.169]$. Thus more noise weakens detection at fixed exposure even though sufficiently many frequent-participation releases remain informative. At $\sigma=4,T=256$ the conservative no-amplification upper bound is $\epsilon=70.39$ for $\delta=10^{-5}$; this is not a tiny-$\epsilon$ result. Moreover, thresholds selected on the small independent pilot calibration set and nominally targeting 5\% FPR realize 10--12\% FPR here. We make no validated low-FPR claim from this replication.
+
 \subsection{Participation Rate Bounds the Accumulation Effect}
 
 Figure~\ref{fig:q-sensitivity} and Table~\ref{tab:q-sensitivity} show that the strong trajectory result requires frequent participation. The 20-identity replication at $q=0.5$ gives AUC 0.805 at 128 releases, close to the original four-identity value 0.823 for the same mixture score. Reducing $q$ to 0.1 lowers AUC to 0.571; at $q=0.02$ it is 0.531, and at the ordinary-sampling proxy $q=0.004$ it is 0.503. The corresponding final-checkpoint AUCs are 0.730, 0.549, 0.517, and 0.498.
@@ -314,6 +359,37 @@ $q$ & $\E[\#\text{ inclusions}]$ & Trajectory AUC & Endpoint AUC \\
 
 At $q=0.5,T=128$, the trajectory-minus-endpoint AUC gap is 0.076 with paired interval $[-0.001,0.148]$; this pilot therefore does not establish a statistically clear interface advantage. It does establish a participation boundary. At $q=0.004,T=128$, 61.7\% of positive runs realize zero inclusions, close to the theoretical $(1-q)^T=59.9\%$. Such runs are observationally identical to their negative pair. Repetition cannot accumulate a fingerprint that was usually never sampled, and the measured chance-level result prevents extrapolating the high-frequency canary finding to ordinary records over this horizon.
 
+\subsection{Strong Final-Model Baselines Change the Interface Comparison}
+
+Figure~\ref{fig:strong-endpoint} and Table~\ref{tab:strong-endpoint} compare attacks on the same paired runs for 80 new holdout identities. At the original learning rate, the final model has only 24.4\% accuracy on disjoint public query images after 128 updates. The $q=0.5$ trajectory AUC is 0.810, versus 0.693 for calibration-selected final-model LiRA and 0.667 for RMIA. The trajectory--strongest-endpoint gain is 0.117 with paired identity interval $[0.070,0.170]$. This establishes a gap in this low-utility condition, but it also warns against treating an impaired final model as the only endpoint baseline.
+
+At the exploratory lower learning rate, accuracy reaches 66.2\%. The trajectory AUC remains 0.818, while LiRA rises to 0.830 and RMIA to 0.782. The trajectory-minus-best-endpoint difference is $-0.012$ with paired interval $[-0.043,0.020]$. The Nasr-style raw canary-gradient projection control reaches 0.831 and differs from LiRA by only 0.001 $[-0.034,0.038]$; the $q$-aware score minus this projection is $-0.013$ with paired interval $[-0.051,0.025]$. A calibration-selected linear fusion of LiRA and the $q$-aware trajectory assigns zero weight to the trajectory at $q=0.5,T=128$; fusing LiRA with raw alignment yields only 0.004 AUC gain $[-0.001,0.010]$. The $q$-aware score does improve RMIA from 0.782 to 0.803, paired gain 0.021 $[0.007,0.035]$, but raw alignment plus RMIA reaches 0.843 and its gain over LiRA is only 0.013 $[-0.006,0.030]$. Thus this replication does not demonstrate a unique or resolved trajectory advantage beyond the strongest final-model attack or the established projection primitive when the trained model is useful. At $q=0.1$, all attacks remain near 0.57--0.58 and no trajectory advantage is resolved. The differences across learning rates are exploratory comparisons of distinct training mechanisms, not a controlled fixed-utility causal effect.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=.94\textwidth]{figures/trajectory_vs_endpoint_high_utility.pdf}
+  \caption{Held-out AUC on 80 paired identities in the higher-utility setting ($\eta=0.005$, $\sigma=4$). Final-model LiRA and RMIA use 32 public OUT references; raw alignment is a Nasr-style canary-gradient projection control, and both it and the q-aware likelihood use the entire trajectory. It is not a reproduction of Nasr et al.'s full privacy audit. Bands resample identities.}
+  \label{fig:strong-endpoint}
+\end{figure*}
+
+\begin{table*}[t]
+\caption{Stronger final-model comparison at 128 releases, with 20 calibration and 80 evaluation identities per condition. The final column is the q-aware trajectory minus the strongest endpoint attack selected on calibration identities; intervals resample evaluation identities.}
+\label{tab:strong-endpoint}
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{cccccccc}
+\toprule
+$\eta$ & $q$ & Public accuracy & Trajectory & Nasr-style projection & LiRA & RMIA & Gain [95\% interval] \\
+\midrule
+0.05 & 0.5 & 0.244 & 0.810 & 0.784 & 0.693 & 0.667 & $+0.117\,[0.070,0.170]$ \\
+0.05 & 0.1 & 0.243 & 0.563 & 0.562 & 0.537 & 0.531 & $+0.027\,[-0.002,0.057]$ \\
+0.005 & 0.5 & 0.662 & 0.818 & 0.831 & 0.830 & 0.782 & $-0.012\,[-0.043,0.020]$ \\
+0.005 & 0.1 & 0.663 & 0.574 & 0.583 & 0.580 & 0.575 & $-0.006\,[-0.022,0.011]$ \\
+\bottomrule
+\end{tabular}
+}
+\end{table*}
+
 \subsection{Learned Sequence Models Do Not Outperform the Analytic Detector}
 
 Table~\ref{tab:learned} compares the learned and analytic detectors on identical 16-round holdout trajectories. Conditional diffusion reaches AUC 0.944 at $\sigma=0.25$, only 0.015 above sum-LLR; the paired 95\% interval for the difference is $[-0.003,0.036]$. At $\sigma=1$ and $\sigma=4$, diffusion is worse by 0.032 and 0.043. The BiLSTM never materially improves on the analytic score.
@@ -337,47 +413,46 @@ The learned models have two disadvantages in this regime. First, only four calib
 
 \subsection{Closed-Gallery Record Linkage and Distribution Confounds}
 
-Accumulated evidence can identify a real record when it is present in an auxiliary gallery. Figure~\ref{fig:gallery} and Table~\ref{tab:gallery} report matched-background results at 128 releases and $\sigma=4$. Each distribution has 20 retrieval trials, so exact top-1 ranges from 3/20 to 6/20 trials (15--30\%), compared with 3.1\% at random; top-5 is 50--65\%, compared with 15.6\% at random.
+Accumulated evidence can identify a real record when it is present in an auxiliary gallery. Figure~\ref{fig:gallery} and Table~\ref{tab:gallery} report the larger matched-background replication at 128 releases and $\sigma=4$. Each distribution has 60 retrieval trials across 30 distinct target identities. Exact top-1 is 13.3--15.0\%, compared with 3.1\% at random, and top-5 is 36.7--48.3\%, compared with 15.6\% at random. This is weaker than the original ten-identity pilot's 15--30\% top-1 range, which illustrates why replication matters.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\columnwidth]{figures/gallery_recovery.pdf}
-  \caption{Exact record recovery from a 32-image auxiliary gallery. The target is an ordinary held-out MNIST record.}
+  \includegraphics[width=\columnwidth]{figures/gallery_recovery_replication.pdf}
+  \caption{Exact record recovery from a 32-image auxiliary gallery on 30 held-out target identities, two runs per identity and distribution. Bands resample identities.}
   \label{fig:gallery}
 \end{figure}
 
 \begin{table*}[t]
-\caption{Closed-gallery recovery with a matched public background at 128 releases ($\sigma=4$). Open-gallery metrics remove the true image before
-retrieval.}
+\caption{Closed-gallery recovery replicated on 30 identities per distribution with a matched public background at 128 releases ($\sigma=4$). Open-gallery metrics remove the true image before retrieval.}
 \label{tab:gallery}
 \centering
 \begin{tabular}{lcccccc}
 \toprule
 Private distribution & Exact top-1 & Exact top-5 & Digit match & Same-class top-1 & Open digit & Open MSE \\
 \midrule
-Balanced & 0.20 & 0.65 & 0.45 & 0.45 & 0.30 & 0.140 \\
-Long-tail & 0.25 & 0.60 & 0.40 & 0.60 & 0.25 & 0.138 \\
-Canary class rare & 0.30 & 0.55 & 0.40 & 0.60 & 0.30 & 0.124 \\
-Canary class dominant & 0.15 & 0.50 & 0.25 & 0.30 & 0.15 & 0.149 \\
+Balanced & 0.133 & 0.433 & 0.167 & 0.650 & 0.100 & 0.146 \\
+Long-tail & 0.150 & 0.483 & 0.183 & 0.600 & 0.117 & 0.150 \\
+Canary class rare & 0.150 & 0.417 & 0.167 & 0.683 & 0.100 & 0.145 \\
+Canary class dominant & 0.133 & 0.367 & 0.183 & 0.600 & 0.150 & 0.150 \\
 \midrule
 Random / class-only baseline & 0.031 & 0.156 & -- & 0.317 & 0.071 & 0.147 \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-Same-class top-1 helps interpret the result. Long-tail and canary-rare settings reach 0.60, above the 0.317 class-only oracle baseline, suggesting sample-specific evidence beyond the digit. Balanced data reaches 0.45. The canary-dominant setting reaches only 0.30, consistent with class recognition but not individual discrimination. Because there are only ten identities and two trajectories per identity, these differences require larger-scale confirmation.
+Same-class top-1 is 0.60--0.68, above the 0.317 expected success of uniform guessing within the correct digit. Thus, matched-background rankings contain some image-specific evidence beyond digit recognition. Exact top-1 intervals remain broad, however; the balanced condition's identity-bootstrap interval is $[0.033,0.250]$. Recovery at 128 releases is also not uniformly better than at 64, so the figure does not support monotone exact reconstruction.
 
-The mismatched-background control exposes a sharper failure mode. Using a balanced public background on canary-dominant private data yields 100\% digit agreement and 100\% open-gallery digit agreement, yet same-class top-1 is 25\%, at or below the class-only baseline. The attack detects a population-level class shift, then guesses among images of that class. Conversely, mismatch reduces exact top-1 from 25\% to 5\% for long-tail data and from 30\% to 15\% when the canary class is rare. A trajectory audit that reports only label match or top-$k$ can therefore mistake distribution leakage for record recovery.
+The mismatched-background control exposes a sharper failure mode. Using a balanced public background on canary-dominant private data yields 100\% digit agreement and 100\% open-gallery digit agreement, yet same-class top-1 is 25\%, below the 31.7\% label-only random baseline. The attack detects a population-level class shift, then guesses among images of that class. Conversely, mismatch reduces exact top-1 from 15.0\% to 6.7\% for both long-tail and rare-class data. A trajectory audit that reports only label match or top-$k$ can therefore mistake distribution leakage for record recovery.
 
-When the true image is removed, matched-background digit agreement remains 15--30\% versus 7.1\% at random, indicating limited semantic leakage. The output is still another gallery image, and pixel MSE only inconsistently beats the 0.147 random baseline. This control prevents us from interpreting gallery selection as generative reconstruction.
+When the true image is removed, matched-background digit agreement remains 10--15\% versus 7.1\% at random, indicating at most limited semantic leakage. The output is still another gallery image, and pixel MSE is close to the 0.149 random baseline. This control prevents us from interpreting gallery selection as generative reconstruction.
 
 \section{Security Implications}
 
 \subsection{Audit the Interface, Not Only the Final Model}
 
-Standard composition-based DP-SGD accounting provides a valid privacy bound even when the sequence of intermediate updates is exposed. When only a final iterate is released, however, tighter hidden-state analyses may apply under additional assumptions because later noisy iterations can amplify the privacy of earlier contributions~\cite{feldman2018iteration,ye2022hidden}. Exposing intermediate states therefore does not invalidate standard composition; it changes the observable mechanism and can remove amplification available in a hidden-state analysis. Systems should inventory gradient telemetry, intermediate checkpoint access, crash dumps, optimizer state, and federated-server visibility, then match both formal accounting and empirical auditing to the strongest interface actually exposed.
+Standard composition-based DP-SGD accounting provides a valid privacy bound even when the sequence of intermediate updates is exposed. When only a final iterate is released, however, tighter hidden-state analyses may apply under additional assumptions because later noisy iterations can amplify the privacy of earlier contributions~\cite{feldman2018iteration,ye2022hidden}. Exposing intermediate states therefore does not invalidate standard composition; it changes the observable mechanism and can remove amplification available in a hidden-state analysis. Empirically, our stronger LiRA comparison finds no resolved trajectory advantage in the higher-utility setting; access to more observations alone is not evidence that this particular attack extracts more membership information. Systems should inventory gradient telemetry, intermediate checkpoint access, crash dumps, optimizer state, and federated-server visibility, then match both formal accounting and empirical auditing to the strongest interface actually exposed.
 
-The fact that $\sigma=4$ sounds large does not imply strong end-to-end privacy. For fixed-size replacement and no amplification, our conservative bound reaches 43.14 after 128 releases. A production deployment should use an accountant matched to its sampler and adjacency, enforce a total budget, and stop releases when that budget is exhausted. Release minimization is a security control in its own right.
+The fact that $\sigma=4$ sounds large does not imply strong end-to-end privacy. For fixed-size replacement and no amplification, our conservative bound reaches 43.14 after 128 releases and 70.39 after 256. A production deployment should use an accountant matched to its sampler and adjacency, enforce a total budget, and stop releases when that budget is exhausted. Release minimization is a security control in its own right.
 
 \subsection{Use Natural Canaries and Identity-Aware Controls}
 
@@ -397,15 +472,15 @@ Second, the strongest results use $q=0.5$, substantially above the approximately
 
 Third, the observer has full white-box model and gradient access and knows the candidate image and label. This matches an internal auditor or federated server, not a remote user. Partial-coordinate, quantized, secure-aggregation, stale checkpoint, and unknown-label variants are necessary to map the boundary of the attack. Our background estimator also uses public data representative of the private distribution; the mismatch experiment shows the cost of violating that assumption.
 
-Fourth, the empirical units are limited. The original holdout study has four identities and 48 positive/negative trajectories per condition. The sensitivity study improves identity coverage to 20 but has only three repetitions per identity and one model architecture. The gallery has ten target identities and two repetitions per distribution, so the reported 15--30\% exact top-1 range corresponds to only 3--6 successful retrievals out of 20 trials per distribution. Cluster bootstrap intervals reflect these groups but cannot replace broader replication.
+Fourth, the empirical units remain limited. The original holdout study has four identities and 48 positive/negative trajectories per condition. The ordinary-$q$ sensitivity pilot improves identity coverage to 20 but has only three repetitions per identity and one model architecture. The new 256-release check has 80 identities and two paired sequences per identity at $\sigma=4$, but its noise sweep has only one paired sequence per identity. It reuses the same identity block as the separate strong-endpoint comparison, so these are not two independent samples of people or images. That comparison has one paired run per identity and two learning rates; the higher-utility rate was selected in an exploratory calibration screen. Thirty-two OUT reference models provide only a finite approximation to LiRA and RMIA. The gallery replication includes 30 identities and two repetitions per distribution; its exact top-1 range corresponds to only 8--9 successful retrievals out of 60 trials per distribution. Cluster bootstrap intervals reflect independent identities within a study but cannot replace replication on other architectures and datasets.
 
-Fifth, AUC is not an empirical DP lower bound. Estimating $\epsilon$ requires valid confidence bounds on false-positive and false-negative events under a precisely specified neighboring-dataset experiment. Our study instead measures discrimination and retrieval for a natural-record distribution. It complements, rather than replaces, formal accounting and tight DP audits.
+Fifth, AUC is not an empirical DP lower bound. Estimating $\epsilon$ requires valid confidence bounds on false-positive and false-negative events under a precisely specified neighboring-dataset experiment. Our 80-identity AUC averages across different candidate-specific neighbors and therefore cannot be inserted into Nasr et al.'s f-DP or PLD lower-bound procedure as though it were repeated trials for one fixed pair. A genuine matched audit would fix the neighboring datasets, participation law, canary and observation interface, use independent randomness across trials, and reserve separate data for threshold choice and error estimation. Our current 20-identity threshold calibration is too small: its nominal 5\% FPR threshold realizes about 10--12\% FPR in the 256-release holdout. A separate one-run natural-canary extension also failed to establish a positive empirical $\epsilon$ lower bound or an advantage over a same-access projection control. We therefore claim detection AUC and record linkage only, not an operational low-FPR detector or tight one-run audit.
 
 Finally, closed-gallery re-identification is not unknown-image reconstruction. A stronger next step is to exclude the target from every public bank, optimize a public generator's latent code against the cumulative trajectory likelihood, and lock the inversion procedure on public validation data before evaluating unseen targets. It should be scored against random, class-mean, same-class nearest-neighbor, prior-only, and clean-gradient controls. Until that gate is passed, ``record linkage'' is the correct description.
 
 \section{Conclusion}
 
-\method~demonstrates a bounded property of white-box DP-SGD exposure: a weak high-noise fingerprint can become informative when a record participates frequently and matched evidence is accumulated over the training trajectory. On exact evolving CNN runs at $\sigma=4$ and $q=0.5$, unseen-canary AUC reaches about 0.81 at 128 releases. The sensitivity study prevents a broader claim: AUC falls to 0.571 at $q=0.1$ and to chance at the ordinary-sampling proxy $q=0.004$, while a final-checkpoint attack follows the same trend. More noise still improves privacy at fixed exposure, the learned diffusion baseline does not outperform the analytic detector, and distribution mismatch can create misleading class-level success. The practical conclusion is to match privacy analysis and auditing to participation and the release interface, minimize unnecessary trajectory access, and distinguish identity leakage from semantic shortcuts and open reconstruction.
+\method~measures a bounded property of white-box DP-SGD exposure: an initially weak fingerprint can become informative when a known record participates frequently and evidence is accumulated over many noisy releases. On exact evolving CNN runs at $\sigma=4$ and $q=0.5$, the 80-identity replication reaches AUC 0.843 after 256 releases, with a large conservative privacy upper bound. At $q=0.1$ it reaches only 0.589, while the separate ordinary-sampling proxy $q=0.004$ remains at chance within 128 rounds. The stronger comparator also matters: LiRA and a Nasr-style projection control match the trajectory score when the final model retains 66\% public-query accuracy. More noise reduces detection at fixed exposure, the diffusion baseline does not improve the high-noise result, and distribution mismatch can create misleading class-level success. This is a boundary study of a candidate-conditioned white-box detection primitive, not a new tight privacy audit or unknown-image reconstructor. Audits should match actual participation and interface access, use same-access baselines, and report achieved false-positive rates and identity-aware recovery controls.
 
 \section*{Ethical Considerations}
 
@@ -413,7 +488,7 @@ This work studies privacy attacks to improve auditing and system design. All exp
 
 \section*{Open Science}
 
-An anonymized artifact accompanies the submission. It contains the complete PyTorch implementation, fixed configurations, 48 tests for per-record gradients, clipping and update correctness, saved aggregate CSV results, and scripts that reproduce every paper figure. The MNIST CSV is not redistributed; the artifact documents its expected format and records its SHA-256 digest. The repository also includes negative and mismatch controls and does not overwrite completed runs. Row-level canary identifiers and large intermediate tensors are excluded from the review artifact; they can be regenerated from the public dataset and fixed seeds. The anonymous artifact link is supplied separately in HotCRP.
+An anonymized artifact accompanies the submission. It contains the complete PyTorch implementation, fixed configurations, tests for per-record gradients, clipping and update correctness, saved aggregate CSV results, and scripts that reproduce the paper figures. The MNIST CSV is not redistributed; the artifact documents its expected format and records its SHA-256 digest. The repository also includes negative and mismatch controls and does not overwrite completed runs. Row-level canary identifiers and large intermediate tensors are excluded from the review artifact; they can be regenerated from the public dataset and fixed seeds. The anonymous artifact link is supplied separately in HotCRP.
 
 \section*{LLM usage considerations}
 
@@ -426,7 +501,7 @@ LLMs were used for editorial purposes in this manuscript, and all outputs were i
 
 \section{Implementation and Validation Details}
 
-The implementation uses vectorized per-record automatic differentiation. A unit test compares vectorized gradients with a loop over individual records. Other tests verify global-norm clipping, the identity between the saved noisy release and actual parameter update, deterministic paired runs, disjoint split roles, likelihood calculations, candidate permutation equivariance, endpoint-prefix selection, and negative controls. The full suite contains 48 tests. A separate result check verifies that lower-$q$ inclusion schedules are subsets of their paired higher-$q$ schedules and that negative endpoint scores are identical across $q$ conditions.
+The implementation uses vectorized per-record automatic differentiation. A unit test compares vectorized gradients with a loop over individual records. Other tests verify global-norm clipping, the identity between the saved noisy release and actual parameter update, deterministic paired runs, disjoint split roles, likelihood calculations, candidate permutation equivariance, endpoint-prefix selection, and negative controls. A separate result check verifies that lower-$q$ inclusion schedules are subsets of their paired higher-$q$ schedules and that negative endpoint scores are identical across $q$ conditions.
 
 For every trajectory round, candidate and public-background gradients are computed at the pre-update model state. The private batch is sampled next, its per-record gradients are clipped, and independent Gaussian noise is added to the sum. The stored observation is the averaged noisy gradient actually used in the update. No clean private gradient or sampled noise is passed to an attack.
 
@@ -449,7 +524,7 @@ $T$ & AUC & Gain vs. 16 & 95\% interval & $\epsilon$ upper \\
 \end{tabular}
 \end{table}
 
-At 128 releases, matched versus balanced-background exact top-1 is 0.20 versus 0.20 for balanced data, 0.25 versus 0.05 for long-tail data, 0.30 versus 0.15 for canary-rare data, and 0.15 versus 0.25 for canary-dominant data. The last number is not an improvement: balanced-background canary-dominant retrieval has digit agreement 1.0 but same-class top-1 0.25, exposing the class shortcut.
+In the original ten-identity gallery pilot, matched versus balanced-background exact top-1 at 128 releases is 0.20 versus 0.20 for balanced data, 0.25 versus 0.05 for long-tail data, 0.30 versus 0.15 for canary-rare data, and 0.15 versus 0.25 for canary-dominant data. The larger 30-identity replication in the main text gives lower matched top-1 rates and confirms the class shortcut: balanced-background canary-dominant retrieval has digit agreement 1.0 but same-class top-1 0.25.
 
 \paragraph{Exploratory fixed-checkpoint controls.}
 Separate fixed-checkpoint experiments provide an additional, exploratory check on learned denoising and inversion. Public-data Gaussian and neural priors reduce unseen-gradient squared error at moderate noise, but at $\sigma=4$ and 64 repeated releases their errors remain 0.353 and 0.345 versus 0.365 for the prior alone. Pixel inversion on nine images does not outperform a public class-mean image. Because these controls use a small image set and are not part of the main trajectory evaluation, we do not use them to support an unknown-image reconstruction claim.
@@ -460,6 +535,7 @@ Separate fixed-checkpoint experiments provide an additional, exploratory check o
   \item The paper claims repeated-release fingerprint detection and closed-gallery re-identification under white-box access.
   \item It does not claim that increasing $\sigma$ at fixed composition reduces privacy, that DP is violated, or that unknown images are reconstructed.
   \item It does not extrapolate the frequent-participation result to ordinary sampling: the $q=0.004,T=128$ condition is reported at chance.
+  \item The 256-release study is a weak-privacy-budget, frequent-participation condition; its nominal 5\% FPR threshold does not achieve 5\% FPR on holdout.
   \item Reported $\epsilon$ values are conservative analytical upper bounds, not empirical privacy estimates.
   \item Learned models are compared on identical observations and holdout identities; their negative results are retained.
   \item All central claims and limitations appear in the main body rather than relying on this appendix.
