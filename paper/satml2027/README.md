@@ -20,6 +20,10 @@ built-in standalone LaTeX compiler cannot access this project's sibling PDF
 figures and bibliography; its October compile attempt stopped at the first
 missing figure, after the source had passed static reference and file checks.
 
+Learned inclusion-schedule detectors and fixed-checkpoint gradient denoisers
+remain in their reproducible reports under `../../reports/`; they are outside
+the paper's candidate-conditioned trajectory audit claim.
+
 The manuscript is anonymized for review. Keep author identities and submission-system
 metadata outside the shared research repository until the project lead decides how the
 student repository will be used.

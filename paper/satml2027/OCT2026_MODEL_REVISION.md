@@ -45,3 +45,24 @@ information boundary and empirical claim match the recent experiments.
   audit with appropriate confidence bounds. Neither is supplied by AUC.
 - The author-anonymized artifact URL and its independence from the named
   GitHub research repository should be verified separately before review.
+
+## Denoising scope correction
+
+The previous manuscript described a BiLSTM and a conditional diffusion
+*inclusion-schedule detector* as a learned denoiser comparison. That wording
+was misleading: those models see seven hand-built, candidate-conditioned
+features and predict membership or hidden inclusion bits. They do not take a
+noisy DP-SGD batch gradient and recover its clean gradient, and they do not
+generate an unknown image. Their pilot results remain reproducible in
+`reports/canary_learned/`, but they have been removed from the main paper.
+
+The separate `reports/diffusion/` laboratory does train a Diffusers model to
+estimate clipped gradients from Gaussian-corrupted releases. It uses fixed
+public checkpoints, not the evolving DP-SGD transcript studied here, and its
+image-inversion follow-up did not establish unseen-image reconstruction. A
+stronger future test would train a public-data conditional gradient prior on
+evolving trajectories, reconstruct held-out clean batch gradients using only
+the released noisy trajectory, compare against public-prior, Gaussian
+shrinkage, and temporal baselines on identical runs, and attempt pixel
+inversion only if gradient recovery clearly beats those controls. None of
+those unrun tests is used to support this paper's claims.
