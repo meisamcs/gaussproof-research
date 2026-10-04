@@ -2,6 +2,8 @@
 
 Read the [project README](README.md), [artifact guide](REPRODUCIBILITY.md), and [current research position](docs/first_principles_research_position.md) before changing an experiment. The repository is public and contains aggregate results, code, and a working manuscript. Raw identity-level scores, datasets, checkpoints, and private trajectories stay in ignored local `runs/` and `data/` directories.
 
+For a bounded undergraduate contribution, use the [single-question public-background mismatch project](docs/course_project_background_shift.md). It fixes MNIST, one CNN, and one DP-SGD setting while testing whether the audit depends on a representative public background.
+
 ## What is established
 
 The primary experiment is a known-candidate white-box audit of exact evolving MNIST CNN trajectories. At `sigma=4`, 80 held-out identities, and `q=0.5`, the q-aware trajectory AUC rises from 0.633 at 16 releases to 0.843 at 256. At `q=0.1`, the same values are 0.530 and 0.589. On matched identities at `q=0.5,T=256`, increasing `sigma` from 2 to 8 lowers AUC from 0.910 to 0.737. The separate `q=0.004,T=128` ordinary-sampling proxy remains at chance (AUC 0.503). The [primary report](reports/canary_first_principles_holdout/README.md) and [q-sensitivity report](reports/canary_q_sensitivity/README.md) give intervals, data, and caveats.
