@@ -1,0 +1,14 @@
+{
+  "seed": 20261004,
+  "sigmas": [1.0, 4.0],
+  "clip": 1.0,
+  "batch_size": 8,
+  "learning_rate": 0.005,
+  "q": 0.2,
+  "steps": 128,
+  "gallery_size": 8,
+  "calibration_runs": 4,
+  "evaluation_runs": 8,
+  "query_size": 128,
+  "penalty_factors": [0.0, 0.25, 0.5, 1.0]
+}

@@ -1,0 +1,26 @@
+{
+  "seeds": [
+    20261011,
+    20261013,
+    20261017
+  ],
+  "q": [
+    0.02,
+    0.1,
+    0.5
+  ],
+  "sigma": [
+    2.0,
+    4.0
+  ],
+  "rounds": 64,
+  "clients_per_round": 8,
+  "federated_emnist_sha256": "0540b878da75b6a9a8c14fadae5c4b0a62cf12f8ff5fcf675b6f6c6c774df323",
+  "access": "Endpoint attacks use final models; trajectory attacks additionally see all checkpoints and public clients",
+  "adjacency": "Replace one cohort client with the candidate; fixed B=8 and N=B/q; shared schedules and tree-noise draws",
+  "sensitivity": "Clipped replace-one shift at most 2C/B; tree-node Gaussian std sigma*C/B",
+  "privacy": "No user-level epsilon reported for repeated participation; source one-pass bound does not apply",
+  "large_batch": "Three-seed robustness check: B=32, N=64, q=.5, sigma=4, T=64",
+  "long_batch": "Exploratory one-seed check: B=32, N=64, q=.5, sigma=4, T=128",
+  "limitations": "Source-aligned NumPy softmax pilot, not official TFF CNN; seed ranges are not confidence intervals"
+}

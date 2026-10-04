@@ -1,0 +1,25 @@
+{
+  "seconds": 625.2084858417511,
+  "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "gallery_size": 32,
+  "true_candidates": 30,
+  "trajectories": 240,
+  "distributions": [
+    "balanced",
+    "long_tail",
+    "canary_rare",
+    "canary_dominant"
+  ],
+  "sigma": 4.0,
+  "prefixes": [
+    16,
+    32,
+    64,
+    128
+  ],
+  "reconstruction": "closed-gallery exact-image retrieval",
+  "open_control": "true image removed before alternative retrieval",
+  "source_completion_sha256": "0a978672c32ac59fb77fc7c5cfa95666b0c0318a08a2ee3b8135744b8b4ab626",
+  "implementation_sha256": "788d24d01c6f36f879c2c34665fb17f86b5ce7035dd9f57f84173081489fba1f",
+  "torch": "2.5.1"
+}

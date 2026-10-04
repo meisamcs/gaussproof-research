@@ -1,0 +1,12 @@
+{
+  "bootstrap_repetitions": 5000,
+  "clustered_unit": "one independent training run",
+  "primary_score": "joint_trajectory",
+  "references": [
+    "nasr_dot",
+    "gaussian_mixture",
+    "sparse"
+  ],
+  "audit_inference": "paper Corollary 5.4 per-run lower bound, Bonferroni across all reported methods only; no best-run selection",
+  "confidence": "descriptive 95% run-bootstrap intervals; not per-run DP lower bounds"
+}

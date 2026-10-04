@@ -1,0 +1,17 @@
+{
+  "seed": 20261022,
+  "sigma": 8.0,
+  "clip": 1.0,
+  "batch_size": 8,
+  "learning_rate": 0.00125,
+  "q": 0.004,
+  "steps": 512,
+  "identities_per_class": 10,
+  "calibration_per_class": 2,
+  "utility_size": 128,
+  "calibration_fpr": 0.05,
+  "bootstrap_repetitions": 1000,
+  "cadences": [1],
+  "stale_intervals": [1],
+  "assumed_sigmas": [8.0]
+}

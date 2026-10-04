@@ -1,0 +1,15 @@
+{
+  "sparse": "sparse_0",
+  "sparse_calibration_mrr": {
+    "sparse_0": 0.29459447415329765,
+    "sparse_0.25": 0.29459447415329765,
+    "sparse_0.5": 0.29459447415329765,
+    "sparse_1": 0.28958333333333336
+  },
+  "same_access_baseline": "mixture_llr",
+  "same_access_baseline_calibration_mrr": {
+    "alignment": 0.3892002442002442,
+    "gaussian_llr": 0.32375,
+    "mixture_llr": 0.39016806722689074
+  }
+}

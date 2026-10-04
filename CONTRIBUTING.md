@@ -23,6 +23,8 @@
 ## Pull request checklist
 
 - [ ] `python -m gaussproof.cli smoke` passes.
+- [ ] `python scripts/check_public_artifact.py` passes and committed figures
+      regenerate from their aggregate CSVs.
 - [ ] The protocol and configuration were committed before result-driven changes.
 - [ ] No dataset, checkpoint, trajectory tensor, row identity, credential, or local path
       is committed.
@@ -31,3 +33,5 @@
 - [ ] The report states the precise attacker access and privacy accounting method.
 - [ ] Figures can be regenerated from checked-in aggregate data.
 - [ ] Manuscript claims match the aggregate results and confidence intervals.
+- [ ] A circulated manuscript PDF was rebuilt from the current `main.tex` and
+      visually checked; the repository does not ship a stale compiled PDF.

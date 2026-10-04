@@ -1,0 +1,9 @@
+sigma,metric,first,second,orientation,gain,ci_low,ci_high,runs
+1.0,support_auc,sparse_0.25,exact,first_minus_second,-0.02263366129967126,-0.027118521207753862,-0.01880013230114584,8
+1.0,clean_gradient_mse,sparse_0.25,exact,second_minus_first_lower_error_better,0.003747981502961597,0.001964347062447743,0.005169778472367393,8
+1.0,clean_gradient_mse,sparse_0.25,prior,second_minus_first_lower_error_better,0.02229137498245208,0.020154817714884983,0.024391959475952272,8
+1.0,clean_gradient_mse,exact,prior,second_minus_first_lower_error_better,0.018543393479490487,0.017833447136654343,0.01946684904970364,8
+4.0,support_auc,sparse_1,exact,first_minus_second,-0.02477153182534282,-0.03618927726081327,-0.011713913221514372,8
+4.0,clean_gradient_mse,sparse_1,exact,second_minus_first_lower_error_better,-0.008428144862067534,-0.009795938728777577,-0.007067913106604203,8
+4.0,clean_gradient_mse,sparse_1,prior,second_minus_first_lower_error_better,-0.007145230699043943,-0.008584291397222965,-0.005644141776658725,8
+4.0,clean_gradient_mse,exact,prior,second_minus_first_lower_error_better,0.0012829141630235907,0.0011179665628047995,0.0014639806701356181,8

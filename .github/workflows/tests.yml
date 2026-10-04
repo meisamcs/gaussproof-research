@@ -1,5 +1,7 @@
 name: Benchmark tests
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -16,6 +18,23 @@ jobs:
       - if: matrix.components == 'diffusion'
         run: pip install -r requirements-trajectory.txt
       - run: python -m gaussproof.cli smoke
+        env:
+          OPENBLAS_NUM_THREADS: '1'
+          OMP_NUM_THREADS: '2'
+      - run: python scripts/check_public_artifact.py
+        if: matrix.components == 'core'
+      - if: matrix.components == 'core'
+        run: python -m scripts.plot_committed_fingerprint --report reports/canary_first_principles_holdout --output "$RUNNER_TEMP/fingerprint.pdf"
+  federated:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install -r requirements-tested.txt -e . msgpack==1.1.1
+      - run: python -m unittest discover -s experiments/dp_ftrl_independent -p 'test_*.py' -q
         env:
           OPENBLAS_NUM_THREADS: '1'
           OMP_NUM_THREADS: '2'

@@ -1,0 +1,33 @@
+{
+  "dataset_sha256": "fb60bc58af4dac3554e394af262b3184479833d3cc540ff8783f274b73492d5d",
+  "source_checkpoint_sha256": "ec9d8673f8c4e3ffc9611c82afeb047a0bcb94aa8f24d1b7fa6746203d933edb",
+  "config": {
+    "seed": 20261201,
+    "sigmas": [
+      1.0,
+      4.0
+    ],
+    "clip": 1.0,
+    "batch_size": 8,
+    "learning_rate": 0.005,
+    "q": 0.03125,
+    "sampling_mode": "poisson",
+    "population_size": 256,
+    "steps": 512,
+    "repetitions": 8,
+    "canaries": 64,
+    "background_size": 64,
+    "query_size": 128,
+    "positive_guesses": 16,
+    "negative_guesses": 16,
+    "sparse_penalty_factor": 0.25,
+    "joint_iterations": 8,
+    "joint_damping": 0.5,
+    "familywise_alpha": 0.05,
+    "delta": 1e-05
+  },
+  "seconds": 254.6533281803131,
+  "torch": "2.5.1",
+  "audit": "independent fair dataset-level canary bits, one evolving CNN run per condition and repetition",
+  "inference": "Within-run Bonferroni across 5 methods; no best-run selection; conservative Binomial tail plus 2m*delta"
+}

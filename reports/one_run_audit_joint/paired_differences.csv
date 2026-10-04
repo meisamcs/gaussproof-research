@@ -1,0 +1,13 @@
+sigma,metric,first,second,mean_gain,ci_low,ci_high,runs
+1.0,correct,joint_trajectory,nasr_dot,0.5,-0.9,1.8,20
+1.0,auc,joint_trajectory,nasr_dot,0.027281764324008584,-0.00273894038185633,0.05558894030923681,20
+1.0,correct,joint_trajectory,gaussian_mixture,0.7,0.0,1.4,20
+1.0,auc,joint_trajectory,gaussian_mixture,0.02317188438643003,0.00997282725422756,0.036304316076936675,20
+1.0,correct,joint_trajectory,sparse,0.25,-0.8,1.35,20
+1.0,auc,joint_trajectory,sparse,0.011999209769874387,-0.006809711546973715,0.03050838016549225,20
+4.0,correct,joint_trajectory,nasr_dot,0.2,-0.85,1.25,20
+4.0,auc,joint_trajectory,nasr_dot,-4.4106752637043666e-05,-0.023396992174545467,0.022196433599265264,20
+4.0,correct,joint_trajectory,gaussian_mixture,0.2,-0.35,0.75,20
+4.0,auc,joint_trajectory,gaussian_mixture,0.0025375630093185304,-0.002589342501173017,0.008268143970812998,20
+4.0,correct,joint_trajectory,sparse,1.05,0.05,2.05,20
+4.0,auc,joint_trajectory,sparse,0.022952993867504247,0.004732429436729486,0.042261150655246264,20

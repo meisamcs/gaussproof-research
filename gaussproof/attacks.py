@@ -61,7 +61,8 @@ def rmia(target, reference, population_target, population_reference, a=0.5, gamm
     z = np.sort(ratio(population_target, population_reference))
     if len(z) == 0:
         raise ValueError('RMIA requires independent population samples')
-    return np.searchsorted(z, x/gamma, side='left')/len(z)
+    # The paper's dominance event is LR(x,z) >= gamma, including equality.
+    return np.searchsorted(z, x/gamma, side='right')/len(z)
 
 
 def trajectory_scores(dictionary, releases, penalty, iterations=80):

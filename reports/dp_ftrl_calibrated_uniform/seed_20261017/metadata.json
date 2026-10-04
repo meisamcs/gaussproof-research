@@ -1,0 +1,79 @@
+{
+  "status": "source-aligned NumPy exploratory pilot; not official TFF driver",
+  "upstream_sha": "a5af8c4433c9ee2d2b1565f1bcc68c89e2000a6b",
+  "federated_emnist_sha256": "0540b878da75b6a9a8c14fadae5c4b0a62cf12f8ff5fcf675b6f6c6c774df323",
+  "dataset_url": "https://storage.googleapis.com/gresearch/fedjax/emnist/federated_emnist_digitsonly_train.sqlite",
+  "parameters": {
+    "sqlite": "/private/tmp/federated_emnist_digitsonly_train.sqlite",
+    "output": "reports/dp_ftrl_calibrated_uniform/seed_20261017",
+    "modes": [
+      "natural_writer",
+      "iid_mixed",
+      "label_sorted"
+    ],
+    "rounds": 64,
+    "position": 32,
+    "clients_per_round": 8,
+    "calibration_identities": 40,
+    "holdout_identities": 80,
+    "public_bank": 12,
+    "public_pool": 512,
+    "population_clients": 64,
+    "background_pool": 500,
+    "reference_models": 32,
+    "examples": 16,
+    "client_example_selection": "uniform",
+    "pixel_transform": "ink",
+    "reserve_utility_clients": 1124,
+    "utility_seed": 20260929,
+    "sigma": [
+      0.25,
+      4.0
+    ],
+    "delta": 1e-05,
+    "clip": 1.0,
+    "client_lr": 1.0,
+    "server_lr": 0.2,
+    "momentum": 0.9,
+    "penalty": 0.0001,
+    "iterations": 40,
+    "bootstrap": 400,
+    "seed": 20261017,
+    "calibrate_endpoint": true
+  },
+  "role_counts": {
+    "candidate": 120,
+    "public": 512,
+    "population": 64,
+    "background": 500
+  },
+  "role_partitions_disjoint": true,
+  "utility_tuning_writers_reserved": 1124,
+  "endpoint_calibration": "Calibration identities alone select LiRA/RMIA score variant, mean/max record aggregation, and orientation separately for each distribution and sigma; holdout identities select nothing. The endpoint_best family may also select final-model loss. This is a deliberately generous client-level adaptation, not an original-paper attack implementation.",
+  "candidate_class_purity": {
+    "natural_writer": {
+      "candidate": 0.228125,
+      "public": 0.2239990234375,
+      "population": 0.2236328125,
+      "background": 0.22725
+    },
+    "iid_mixed": {
+      "candidate": 0.23802083333333332,
+      "public": 0.236572265625,
+      "population": 0.224609375,
+      "background": 0.239
+    },
+    "label_sorted": {
+      "candidate": 0.9776041666666667,
+      "public": 0.99560546875,
+      "population": 0.9755859375,
+      "background": 0.996125
+    }
+  },
+  "reference_training": "Same fixed-slot DP-FTRLM recurrence; only public clients; all candidate and population records OUT",
+  "rmia": "Original record-level offline ratio and population dominance; record scores averaged within each client",
+  "lira": "Original offline fixed-variance OUT Gaussian score on true-label logit; record scores averaged within each client",
+  "pierre_joly_reference": "https://github.com/Pierre-Joly/Membership-Inference-Attacks/tree/9182ed809d9fa3d5141d50816b7e83a06590371b",
+  "pierre_joly_variants": "OfflineRMIA applies a=.5 correction to x but uses mean OUT for population z. OfflineLiRA uses raw correct-class logits, per-record OUT mean/std, and Gaussian CDF. Both are explicitly separate from original-paper variants.",
+  "caution": "IID and label-sorted clients are synthetic regroupings of genuine EMNIST digit records. This is not an official TensorFlow Federated application or privacy break."
+}
